@@ -1,8 +1,10 @@
 from sqlalchemy import Column, Integer, String, Unicode, UnicodeText, Date, Boolean
-from models import Base
+from base import Base
 
 # class containing the information about the individual case
 class Case(Base):
+  __tablename__ = 'cases'
+  
   # Identification Variables
   scdb_id = Column(Unicode(20), nullable=False, unique=True, index=True)
   usr_citation = Column(Unicode(100))
