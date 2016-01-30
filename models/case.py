@@ -7,9 +7,9 @@ class Case(Base):
   
   # Identification Variables
   scdb_id = Column(Unicode(20), nullable=False, unique=True, index=True)
-  usr_citation = Column(Unicode(100))
-  sc_docket = Column(Unicode(20), nullable=False, index=True)
-  term = Column(Integer, nullable=False)
+  citation = Column(Unicode(100))
+  docket = Column(Unicode(20), nullable=False, index=True)
+  name = Column(Unicode(100))
   
   # Procedural Variables
   juristiction = Column(Unicode(20))
@@ -29,14 +29,13 @@ class Case(Base):
   
   # Decision Variables
   dec_dir = Column(Unicode(20))
-  diss_dir = Column(Unicode(20))
   dec_type = Column(Unicode(20))
   dec_unconst = Column(Boolean, nullable=False)
   prec_alt = Column(Boolean, nullable=False)
-  disposition = Column(Unicode(20))
+  per_curiam = Column(Boolean, nullable=True)
   
   # Text Variables
   syllabus = Column(UnicodeText)
   holding = Column(UnicodeText)
   facts = Column(UnicodeText)
-  conlclusion = Column(UnicodeText)
+  conclusion = Column(UnicodeText)
