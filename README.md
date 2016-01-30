@@ -4,7 +4,7 @@ The repository is for my statistical learning class project. It will contain cod
 ## The Data
 
 ### Supreme Court Database
-The first data set that I will be using for this project is [The Supreme court Database](http://supremecourtdatabase.org/index.php). They provide several different formats of the data for download but what I really need is the data in an relational database.
+The first data set that I will be using for this project is [The Supreme Court Database](http://supremecourtdatabase.org/index.php). They provide several different formats of the data for download but what I really need is the data in an relational database.
 
 ### Argument Transcripts
 TODO: Make a database of argument transcripts.
