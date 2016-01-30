@@ -1,9 +1,9 @@
 import csv
 from scotus_proj import Session
 
-SCDB_ISSUE_FILE = 'data/SCDB_2015_01_caseCentered_LegalProvision.csv'
-SCDB_CASE_FILE = 'data/SCDB_2015_01_caseCentered_Citation.csv'
-SCDB_VOTE_FILE = 'data/SCDB_2015_01_justiceCentered_Citation.csv'
+SCDB_ISSUE_FILE = 'data/scdb/SCDB_2015_01_caseCentered_LegalProvision.csv'
+SCDB_CASE_FILE = 'data/scdb/SCDB_2015_01_caseCentered_Citation.csv'
+SCDB_VOTE_FILE = 'data/scdb/SCDB_2015_01_justiceCentered_Citation.csv'
 
 def add_case(case_row):
   # TODO: Process case, send to database.

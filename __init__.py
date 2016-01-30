@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DB = 'sqlite://data/scotus.db'
+DB = 'sqlite:///scotus.db'
 
 engine = create_engine(DB)
 
