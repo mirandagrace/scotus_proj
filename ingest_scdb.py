@@ -9,7 +9,7 @@ SCDB_CASE_FILE = 'data/scdb/SCDB_2015_01_caseCentered_Citation.csv'
 SCDB_VOTE_FILE = 'data/scdb/SCDB_2015_01_justiceCentered_Citation.csv'
 
 def add_case(case_row, session):
-  case = Case(parse_case(case_row))
+  case_data = Case(parse_case(case_row))
   # TODO: Process case, send to database.
   return  
   
