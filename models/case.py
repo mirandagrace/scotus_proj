@@ -12,7 +12,7 @@ class Case(Base):
   name = Column(Unicode(100))
   
   # Procedural Variables
-  juristiction = Column(Unicode(20))
+  jurisdiction = Column(Unicode(20))
   cert_reason = Column(Unicode(20))
   admin = Column(Unicode(100))
   admin_loc = Column(Unicode(50))
