@@ -882,7 +882,9 @@ justice_names = [
 'Samuel A. Alito, Jr.',
 'Sonia Sotomayor',
 'Elena Kagan',
-]             
+]
+
+female_justices = ['Sonia Sotomayor', 'Elena Kagan', 'Sandra Day O\'Connor','Ruth Bader Ginsburg']             
 
 vote_labels=['voted with majority or plurality',
 'dissent',

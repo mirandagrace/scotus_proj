@@ -19,14 +19,9 @@ class Party(Base):
     return '<Party(docket={},{}: {})>'.format(self.case.docket, self.side, self.name)
   
 class CanWin(object):
-  @property
-  def won(self):
-    if self.case.winning_side == self.__class__.__name__.lower():
-      return True
-    elif self.case.winning_side:
-      return False
-    else:
-      return None
+  @declared_attr
+  def winner(cls):
+    return Party.__table__.c.get('winner', Column(Boolean))
   
 class Petitioner(Party, CanWin):
   __mapper_args__ = {'polymorphic_identity': 'petitioner'}

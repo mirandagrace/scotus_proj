@@ -1,74 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# parses the data from 
 import csv
 import re
 from datetime import date
-from db import *
-from scdb_labels import *
+from labels import *
 
-SCDB_ISSUE_FILE = 'data/scdb/SCDB_2015_01_caseCentered_LegalProvision.csv'
-SCDB_CASE_FILE = 'data/scdb/SCDB_2015_01_caseCentered_Citation.csv'
-SCDB_VOTE_FILE = 'data/scdb/SCDB_2015_01_justiceCentered_Citation.csv'
-
-def add_case(case_row, session):
-  # make and add case
-  case = Case(**parse_case(case_row))
-  session.add(case)
-  session.commit()
-  # make and add parties
-  petitioner, respondent = parse_parties(case_row)
-  case.petitioner = Petitioner(**petitioner)
-  case.respondent = Respondent(**respondent)
-  session.commit()
-  return case
-  
-# add all the 
-def add_cases(session, num=-1):
-  # open the csv file
-  with open(SCDB_CASE_FILE, 'r') as csvfile:
-    reader = csv.DictReader(csvfile)
-    count = 0
-    # iterate through the cases, adding as you go
-    for case_row in reader:
-      add_case(case_row, session)
-      count += 1
-      if count == num:
-        break    
-  return
- 
-# make the justices table
-def add_justices(session):
-  for name in set(justice_names):
-    justice = Justice(**{'name':name})
-    session.add(justice)
-    session.commit()
-  return
-  
-def add_vote(vote_row, case_id, justice_id, session):
-  vote = Vote(parse_vote(vote_row, case_id, justice_id))
-  session.add(vote)
-  session.commit()
-  return vote
-  
-  
-def add_votes(session, num=-1):
-  justice_dict = Justice.by_name(session)
-  with open(SCDB_VOTE_FILE, 'r') as csvfile:
-    reader = csv.DictReader(csvfile)
-    count = 0
-    case = None
-    # iterate through the votes, adding as you go
-    for vote_row in reader:
-      # if we need to, make a new case.
-      if case == None or current_case.scdb_id != vote_row['caseId']:
-        case = add_case(vote_row, session)
-        count += 1
-        if count == num:
-          return
-      case_id = case.id
-      justice_id = justice_dict[(parse_justice_name(vote_row['justice']))]
-      add_vote(vote_row, case_id, justice_id, session)    
-  
 # function for applying the same function to transform multiple keys from a row_dict
 # to arguments for a sqlalchemy constructor.  
 def batch_process(dict, keys, function):
@@ -124,6 +61,13 @@ def parse_case(case_row):
     case['winning_side'] = u'respondent'
   return case
   
+def parse_justice(name):
+    if name in female_justices:
+      gender = 'F'
+    else:
+      gender = 'M'
+    return {'name': name, 'gender':gender}
+  
 def parse_labels(labels, null=None, d=False):
   def parse(x):
     if x == null or x=='' or x == None :
@@ -134,18 +78,18 @@ def parse_labels(labels, null=None, d=False):
       return labels[int(x)-1]
   return parse
     
-parse_jurisdiction = lambda x: parse_labels(jurisdiction_labels, null='15')(x)
-parse_admin_agency = lambda x: parse_labels(admin_agency_labels, null='118')(x)
-parse_state = lambda x: parse_labels(state_labels)(x)
-parse_court = lambda x: parse_labels(court_labels, d=True)(x)
-parse_cert = lambda x: parse_labels(cert_labels, null='12')(x)
-parse_lc_disposition = lambda x: parse_labels(lc_disposition_labels)(x)
-parse_sc_disposition = lambda x: parse_labels(sc_disposition_labels)(x)
-parse_direction = lambda x: parse_labels(direction_labels, null='3')(x)
-parse_decision_kind = lambda x: parse_labels(decision_kind)(x)
-parse_party = lambda x: parse_labels(party_codes, d=True)(x)
-parse_justice_name = lambda x: parse_labels(justice_names)(x)
-parse_vote_kind = lambda x: parse_labels(vote_labels)(x)
+parse_jurisdiction = parse_labels(jurisdiction_labels, null='15')
+parse_admin_agency = parse_labels(admin_agency_labels, null='118')
+parse_state = parse_labels(state_labels)
+parse_court = parse_labels(court_labels, d=True)
+parse_cert = parse_labels(cert_labels, null='12')
+parse_lc_disposition = parse_labels(lc_disposition_labels)
+parse_sc_disposition = parse_labels(sc_disposition_labels, null='11')
+parse_direction = parse_labels(direction_labels, null='3')
+parse_decision_kind =  parse_labels(decision_kind)
+parse_party = parse_labels(party_codes, d=True, null='501')
+parse_justice_name = parse_labels(justice_names)
+parse_vote_kind = parse_labels(vote_labels)
 
 def parse_parties(case_row):
   try:
@@ -153,38 +97,24 @@ def parse_parties(case_row):
     petitioner = {'name' : petitioner_name, 'side':'petitioner'}
     respondent = {'name' : respondant_name, 'side':'respondent'}
   except:
-    petitioner = {}
-    respondent = {}
+    petitioner = {'name' : None, 'side':'petitioner'}
+    respondent = {'name' : None, 'side':'respondent'}
   petitioner['kind'] = parse_party(case_row['petitioner'])
   petitioner['location'] = parse_state(case_row['petitionerState'])
   respondent['kind'] = parse_party(case_row['respondent'])
   respondent['location'] = parse_state(case_row['respondentState'])
-  # if case_row['partyWinning'] == '1':
-    # petitioner['winner'] = True
-    # respondent['winner'] = False
-  # elif case_row['partyWinning'] == '0':
-    # petitioner['winner'] = False
-    # respondent['winner'] = True
+  if case_row['partyWinning'] == '1':
+    petitioner['winner'] = True
+    respondent['winner'] = False
+  elif case_row['partyWinning'] == '0':
+    petitioner['winner'] = False
+    respondent['winner'] = True
   return petitioner, respondent
   
 def parse_vote(vote_row, case_id, justice_id):
   vote = {'justice_id': justice_id, 'case_id':case_id}
   vote['is_clear'] = vote_row['voteUnclear'] == '0'
   vote['with_majority'] = vote_row['majority'] == '2'
-  vote['direction'] = vote_row['direction']
+  vote['direction'] =  parse_direction(vote_row['direction'])
   vote['kind'] = parse_vote_kind(vote_row['vote'])
   return vote
-
-# main function that builds the database
-def ingest_scdb(num=-1):
-  session = Session()
-  # start with the reading in just the case data
-  #add_cases(session, num=num)
-  add_justices(session)
-  add_votes(session, num)
-  # TODO: add vote data
-  # TODO: add issue tagging 
-  return
-        
-if __name__ == "__main__":
-    ingest_scdb()

@@ -4,7 +4,7 @@ from base import Base
 
 class Justice(Base):
   __tablename__ = 'justices'
-  name = Column(Unicode(100), index=True)
+  name = Column(Unicode(100), index=True, unique=True)
   cases = relationship('Vote', back_populates='justice')
   gender = Column(Unicode(1))
   # opinions_written =
