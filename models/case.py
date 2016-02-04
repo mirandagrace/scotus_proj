@@ -54,10 +54,6 @@ class Case(Base):
   votes = relationship('Vote', back_populates='case')
   justices = association_proxy('votes', 'justice')
   
-  # meta_data
-  oyez = Column(Boolean)
-  justia = Column(Boolean)
-  
   
   @property
   def winner(self):

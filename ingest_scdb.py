@@ -109,8 +109,9 @@ def parse_case(case_row):
   case['orig_loc'] = parse_state(case_row['caseOriginState'])
   case['lower_court'] = parse_court(case_row['caseSource'])
   case['low_court_loc'] = parse_state(case_row['caseSourceState'])
-  case['low_court_disp'] = parse_disposition(case_row['lcDisposition'])
+  case['low_court_disp'] = parse_lc_disposition(case_row['lcDisposition'])
   case['low_court_disp_dir'] = parse_direction(case_row['lcDispositionDirection'])
+  case['disposition'] = parse_sc_disposition(case_row['caseDisposition'])
   case['dec_dir'] = parse_direction(case_row['decisionDirection'])
   case['dec_type'] = parse_decision_kind(case_row['decisionType'])
   if case['dec_type'] == None:
@@ -121,8 +122,6 @@ def parse_case(case_row):
     case['winning_side'] = u'petitioner'
   elif case_row['partyWinning'] == '0':
     case['winning_side'] = u'respondent'
-  case['oyez'] = False
-  case['justia'] = False
   return case
   
 def parse_labels(labels, null=None, d=False):
@@ -140,7 +139,8 @@ parse_admin_agency = lambda x: parse_labels(admin_agency_labels, null='118')(x)
 parse_state = lambda x: parse_labels(state_labels)(x)
 parse_court = lambda x: parse_labels(court_labels, d=True)(x)
 parse_cert = lambda x: parse_labels(cert_labels, null='12')(x)
-parse_disposition = lambda x: parse_labels(disposition_labels)(x)
+parse_lc_disposition = lambda x: parse_labels(lc_disposition_labels)(x)
+parse_sc_disposition = lambda x: parse_labels(sc_disposition_labels)(x)
 parse_direction = lambda x: parse_labels(direction_labels, null='3')(x)
 parse_decision_kind = lambda x: parse_labels(decision_kind)(x)
 parse_party = lambda x: parse_labels(party_codes, d=True)(x)
@@ -150,11 +150,11 @@ parse_vote_kind = lambda x: parse_labels(vote_labels)(x)
 def parse_parties(case_row):
   try:
     petitioner_name, respondant_name = re.split(r' v[.] ', case_row['caseName'].decode('utf-8'), 1)
+    petitioner = {'name' : petitioner_name, 'side':'petitioner'}
+    respondent = {'name' : respondant_name, 'side':'respondent'}
   except:
-    print re.split(r' v[.] ', case_row['caseName'], 1)
-    raise ValueError
-  petitioner = {'name' : petitioner_name, 'side':'petitioner'}
-  respondent = {'name' : respondant_name, 'side':'respondent'}
+    petitioner = {}
+    respondent = {}
   petitioner['kind'] = parse_party(case_row['petitioner'])
   petitioner['location'] = parse_state(case_row['petitionerState'])
   respondent['kind'] = parse_party(case_row['respondent'])

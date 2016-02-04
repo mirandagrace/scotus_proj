@@ -420,7 +420,7 @@ cert_labels = ["case did not arise on cert or cert not granted",
                "no reason given",
                "other reason"]
                
-disposition_labels = ['stay, petition, or motion granted',
+lc_disposition_labels = ['stay, petition, or motion granted',
                       'affirmed',
                       'reversed',
                       'reversed and remanded',
@@ -432,6 +432,19 @@ disposition_labels = ['stay, petition, or motion granted',
                       'modify',
                       'remand',
                       'unusual disposition']
+
+sc_disposition_labels = [
+'stay, petition, or motion granted',
+'affirmed (includes modified)',
+'reversed',
+'reversed and remanded',
+'vacated and remanded',
+'affirmed and reversed (or vacated) in part',
+'affirmed and reversed (or vacated) in part and remanded',
+'vacated',
+'petition denied or appeal dismissed',
+'certification to or from a lower court',
+'no disposition']
                       
 direction_labels = ['conservative', 'liberal', 'unspecifiable']
 
