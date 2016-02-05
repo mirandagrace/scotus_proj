@@ -1,6 +1,6 @@
-from db import DB
-from scdb.ingest import *
-from models import Case, Justice, Petitioner, Respondent, Vote
+from ..db import DB
+from ..scdb.ingest import *
+from ..models import Case, Justice, Petitioner, Respondent, Vote
 
 class TestIngestSCDB():
   def setUp(self):

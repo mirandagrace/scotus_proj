@@ -63,10 +63,10 @@ def parse_case(case_row):
   
 def parse_justice(name):
     if name in female_justices:
-      gender = 'F'
+      gender = u'F'
     else:
-      gender = 'M'
-    return {'name': name, 'gender':gender}
+      gender = u'M'
+    return {'name': name.decode('utf-8'), 'gender':gender}
   
 def parse_labels(labels, null=None, d=False):
   def parse(x):

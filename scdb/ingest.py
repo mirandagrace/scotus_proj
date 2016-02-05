@@ -3,10 +3,10 @@
 import csv
 import re
 from datetime import date
-from config import SCDB_VOTES_FILE
+from ..config import SCDB_VOTES_FILE
 from labels import justice_names
 from parse import *
-from models import Case, Justice, Petitioner, Respondent, Vote
+from ..models import Case, Justice, Petitioner, Respondent, Vote
 
 def add_case(case_row, session):
   # make and add case
