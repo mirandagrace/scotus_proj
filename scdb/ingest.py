@@ -3,6 +3,7 @@
 import csv
 import re
 from datetime import date
+from time import time
 from ..config import SCDB_VOTES_FILE
 from labels import justice_names
 from parse import *
@@ -25,33 +26,27 @@ def add_justices(session):
     session.add(justice)
   return
   
-def add_vote(vote_row, case_id, justice_id, session):
-  vote = Vote(parse_vote(vote_row, case_id, justice_id))
-  session.add(vote)
-  return vote
-  
-def add_votes(session, file=SCDB_VOTES_FILE):
+def add_votes(session, f=SCDB_VOTES_FILE, print_progress=True):
   justice_dict = Justice.by_name(session)
-  with open(SCDB_VOTES_FILE, 'r') as csvfile:
+  with open(f, 'r') as csvfile:
     reader = csv.DictReader(csvfile)
     count = 0
+    t0 = time()
     case = None
     # iterate through the votes, adding as you go
     for vote_row in reader:
       # if we need to, make a new case.
-      if case == None or current_case.scdb_id != vote_row['caseId']:
+      if case == None or case.scdb_id != vote_row['caseId']:
         case = add_case(vote_row, session)
-        count += 1
-        if count == num:
-          return
-      case_id = case.id
-      justice_id = justice_dict[(parse_justice_name(vote_row['justice']))]
-      add_vote(vote_row, case_id, justice_id, session)    
+      justice_id = justice_dict[parse_justice_name(vote_row['justice'])]
+      case.votes.append(Vote(**parse_vote(vote_row, justice_id)))
+      count += 1
+      if count % 1000 == 0:
+        print "Added {} votes in {} seconds".format(count, time()-t0)
+  return  
   
 # main function that builds the database
 def ingest(session):
-  # start with the reading in just the case data
-  #add_cases(session, num=num)
   add_justices(session)
   add_votes(session)
   # TODO: add issue tagging 

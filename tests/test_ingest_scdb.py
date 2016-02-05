@@ -1,6 +1,7 @@
 from ..db import DB
 from ..scdb.ingest import *
 from ..models import Case, Justice, Petitioner, Respondent, Vote, Party
+from ..config import SCDB_TEST_FILE
 from utilities import *
 
 class TestIngestSCDB():
@@ -37,6 +38,20 @@ class TestIngestSCDB():
     assert len(self.session.query(Respondent).all()) == 2
     assert len(self.session.query(Party).all()) == 4
     return
+
+  def test_add_votes(self):
+    try:
+      add_justices(self.session)
+      self.session.commit()
+      add_votes(self.session, f=SCDB_TEST_FILE, print_progress=True)
+    except:
+      self.session.rollback()
+      raise
+    num_added = len(self.session.query(Vote).all())
+    expected = 36
+    assert num_added == expected, "expected {}, got {}".format(str(expected), str(num_added))
+    return
+
     
   def tearDown(self):
     self.session.close()

@@ -75,7 +75,10 @@ def parse_labels(labels, null=None, d=False):
     elif d:
       return labels[x].decode('utf-8')
     else:
-      return labels[int(x)-1].decode('utf-8')
+      try:
+        return labels[int(x)-1].decode('utf-8')
+      except IndexError:
+        raise IndexError, "index error: {}".format(x)
   return parse
     
 parse_jurisdiction = parse_labels(jurisdiction_labels, null='15')
@@ -111,8 +114,8 @@ def parse_parties(case_row):
     respondent['winner'] = True
   return petitioner, respondent
   
-def parse_vote(vote_row, case_id, justice_id):
-  vote = {'justice_id': justice_id, 'case_id':case_id}
+def parse_vote(vote_row, justice_id):
+  vote = {'justice_id': justice_id}
   vote['is_clear'] = vote_row['voteUnclear'] == '0'
   vote['with_majority'] = vote_row['majority'] == '2'
   vote['direction'] =  parse_direction(vote_row['direction'])

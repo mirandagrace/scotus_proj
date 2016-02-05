@@ -82,15 +82,13 @@ r2 = {'name': 'INCLUSIVE COMMUNITIES PROJECT, INC.',
       'side': 'respondent',
       'winner': True}
       
-v1 = { 'case_id' : 1,
-       'justice_id' : 1,
+v1 = {'justice_id' : 1,
        'is_clear' : True,
        'with_majority' : False,
        'kind' : 'dissent',
        'direction' : 'conservative'}
        
-v2 = { 'case_id' : 2,
-       'justice_id' : 2,
+v2 = { 'justice_id' : 2,
        'is_clear' : True,
        'with_majority' : False,
        'kind' : 'dissent',
@@ -144,7 +142,7 @@ def test_parse_parties():
 def test_parse_vote():
   id = 1
   for e, s in zip(expected_votes, test_strings):
-    vote = parse_vote(make_dict(s), id, id)
+    vote = parse_vote(make_dict(s), id)
     yield check_arguments, vote, e
     id += 1
 
