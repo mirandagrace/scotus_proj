@@ -73,9 +73,9 @@ def parse_labels(labels, null=None, d=False):
     if x == null or x=='' or x == None :
       return None
     elif d:
-      return labels[x]
+      return labels[x].decode('utf-8')
     else:
-      return labels[int(x)-1]
+      return labels[int(x)-1].decode('utf-8')
   return parse
     
 parse_jurisdiction = parse_labels(jurisdiction_labels, null='15')

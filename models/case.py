@@ -24,6 +24,7 @@ class Case(Base):
   low_court_loc = Column(Unicode(50))
   low_court_disp = Column(Unicode(20))
   low_court_disp_dir = Column(Unicode(20))
+  disposition = Column(Unicode(20))
   
   # Date Variables
   dec_date = Column(Date)
