@@ -25,19 +25,10 @@ def parse_case(case_row):
   str_vars = [('caseId', 'scdb_id'), ('usCite', 'citation'), ('docket', 'docket'),
               ('caseName', 'name')]
   case.update(batch_process(case_row, str_vars, process_string))
-  # date variable
   month, day, year = case_row['dateDecision'].split('/')
   case['dec_date'] = date(int(year), int(month), int(day))
-  # boolean variables
-  if case_row['declarationUncon'] != None:
-    case['dec_unconst'] = case_row['declarationUncon']!='1'
-  else:
-    pass
-  if case_row['precedentAlteration'] != None:
-    case['prec_alt'] = case_row['precedentAlteration']=='1'
-  else:
-    pass
-  # labeled text variables
+  case['dec_unconst'] = case_row['declarationUncon']!='1'
+  case['prec_alt'] = case_row['precedentAlteration']=='1'
   case['jurisdiction'] = parse_jurisdiction(case_row['jurisdiction'])
   case['cert_reason'] = parse_cert(case_row['certReason'])
   case['admin'] = parse_admin_agency(case_row['adminAction'])
@@ -51,14 +42,14 @@ def parse_case(case_row):
   case['disposition'] = parse_sc_disposition(case_row['caseDisposition'])
   case['dec_dir'] = parse_direction(case_row['decisionDirection'])
   case['dec_type'] = parse_decision_kind(case_row['decisionType'])
-  if case['dec_type'] == None:
-    case['per_curiam'] = None
-  else:
-    case['per_curiam'] = (case_row['decisionType'] == '2' or case_row['decisionType'] == '6')
-  if case_row['partyWinning'] == '1':
+  case['per_curiam'] = (case_row['decisionType'] == '2' or case_row['decisionType'] == '6')
+  if case_row['partyWinning'] == '1': 
     case['winning_side'] = u'petitioner'
-  elif case_row['partyWinning'] == '0':
+  elif case_row['partyWinning'] == '0':  #pragma: no branch
     case['winning_side'] = u'respondent'
+  else:
+    pass
+
   return case
   
 def parse_justice(name):
@@ -68,23 +59,26 @@ def parse_justice(name):
       gender = u'M'
     return {'name': name.decode('utf-8'), 'gender':gender}
   
-def parse_labels(labels, null=None, d=False):
+def parse_labels(labels, null=None, d=False, failsilent=False):
   def parse(x):
-    if x == null or x=='' or x == None :
-      return None
-    elif d:
-      return labels[x].decode('utf-8')
-    else:
-      try:
+    try:
+      if x == null or x=='' or x == None :
+        return None
+      elif d:
+        return labels[x].decode('utf-8')
+      else:
         return labels[int(x)-1].decode('utf-8')
-      except IndexError:
-        raise IndexError, "index error: {}".format(x)
+    except:
+      if failsilent:
+        return None
+      else: #pragma: no cover
+          raise
   return parse
     
 parse_jurisdiction = parse_labels(jurisdiction_labels, null='15')
 parse_admin_agency = parse_labels(admin_agency_labels, null='118')
 parse_state = parse_labels(state_labels)
-parse_court = parse_labels(court_labels, d=True)
+parse_court = parse_labels(court_labels, d=True, failsilent=True)
 parse_cert = parse_labels(cert_labels, null='12')
 parse_lc_disposition = parse_labels(lc_disposition_labels)
 parse_sc_disposition = parse_labels(sc_disposition_labels, null='11')
@@ -109,7 +103,7 @@ def parse_parties(case_row):
   if case_row['partyWinning'] == '1':
     petitioner['winner'] = True
     respondent['winner'] = False
-  elif case_row['partyWinning'] == '0':
+  elif case_row['partyWinning'] == '0': #pragma: no branch
     petitioner['winner'] = False
     respondent['winner'] = True
   return petitioner, respondent

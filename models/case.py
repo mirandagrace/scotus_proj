@@ -10,7 +10,7 @@ class Case(Base):
   # Identification Variables
   scdb_id = Column(Unicode(20), nullable=False, unique=True, index=True)
   citation = Column(Unicode(100))
-  docket = Column(Unicode(20), nullable=False, index=True)
+  docket = Column(Unicode(20), index=True)
   name = Column(Unicode(150), index=True)
   
   # Procedural Variables
@@ -60,10 +60,9 @@ class Case(Base):
   def winner(self):
     if self.winning_side == 'petitioner':
       return self.petitioner
-    elif self.winning_side == 'respondent':
+    elif self.winning_side == 'respondent': # pragma: no branch
       return self.respondent
-    else:
-      return None
+    return None # pragma: no cover
     
   def __repr__(self):
     return '<Case(docket={}, name={})>'.format(self.docket, self.name)

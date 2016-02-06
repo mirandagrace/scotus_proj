@@ -771,7 +771,7 @@ justice_names = [
 'John Jay',
 'John Rutledge',
 'William Cushing',
-'James Wilson'
+'James Wilson',
 'John Blair, Jr.',
 'James Iredell',
 'Thomas Johnson',
