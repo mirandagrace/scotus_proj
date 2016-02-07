@@ -4,10 +4,17 @@ import csv
 import re
 from datetime import date
 from time import time
-from ..config import SCDB_VOTES_FILE, SCDB_HEADERS
 from labels import justice_names
 from parse import *
-from ..models import Case, Justice, Petitioner, Respondent, Vote
+try: #pragma: no cover
+  from models import Case, Justice, Petitioner, Respondent, Vote
+  from config import SCDB_VOTES_FILE, SCDB_HEADERS
+except:#pragma: no cover
+  try:
+    from ..models import Case, Justice, Petitioner, Respondent, Vote
+    from ..config import SCDB_VOTES_FILE, SCDB_HEADERS
+  except:
+    raise
 
 def add_case(case_row, session):
   # make and add case
