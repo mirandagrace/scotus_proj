@@ -4,20 +4,23 @@ from scotus.config import SCDB_TEST_FILE, TEST_DB
 from scotus.db.add import *
 from utilities import *
 
-class TestCase():
+class TestCase:
+  database = DB(TEST_DB)
+
   @classmethod
   def setup_class(cls):
-    database = DB(TEST_DB)
-    database.apply([add_justices, lambda x: add_scdb_votes(x, scdb_f=SCDB_TEST_FILE)])
-    return
+    cls.database.apply([add_justices, lambda x: add_scdb_votes(x, scdb_f=SCDB_TEST_FILE)])
+
+  def __init__(self):
+    self.session = self.database.Session()
+    self.ids = ["1946-001", "1946-002"]
     
   def setup(self):
-    self.database = DB(TEST_DB)
-    self.session = self.database.Session()
-    self.cases_q = self.session.query(Case).filter(Case.scdb_id.in_(["1946-001", "1946-002"]))
-
+    pass
+    
   def test_winner(self):
-    for case in self.cases_q.all():
+    cases = self.session.query(Case).filter(Case.scdb_id.in_(self.ids)).all()
+    for case in cases:
       if case.winning_side == 'petitioner':
         yield assert_eq, case.winner.id, case.petitioner.id
         yield assert_t, case.petitioner.winner
@@ -30,7 +33,8 @@ class TestCase():
         yield assert_eq, case.winner, None
 
   def test_questions(self):
-    for case in self.cases_q.all():
+    cases = self.session.query(Case).filter(Case.scdb_id.in_(self.ids)).all()
+    for case in cases:
       assert_eq(len(case.questions), 0)
 
   @classmethod  

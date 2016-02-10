@@ -33,6 +33,24 @@ def add_scdb_case(case_row, session):
   case.respondent = Respondent(**respondent)
   return case
   
+def add_oyez_case(self, case_data, citation, docket):
+  case_dict = {'citation': citation, 'docket':docket}
+  case_dict['name'] = case_data['name'].upcase().replace(' V. ', ' v. ')
+  case = Case(**case_dict)
+  petitioner = Party({'side':'petitioner', 'name':case_data['first_party']})
+  respondent = Party({'side':'respondent', 'name':case_data['second_party']})
+  if case_data['winning_side'] == petitioner.name:
+    petitioner.winner = True
+    respondent.winner = False
+  elif case_data['winning_side'] == respondent.name:
+    petitioner.winner = False
+    respondent.winner = True
+  else:
+    pass
+  case.petitioner = petitioner
+  case.respondent = respondent
+  return case
+
 def add_scdb_votes(session, scdb_f=SCDB_VOTES_FILE):
   justice_dict = Justice.by_name(session)
   with open(scdb_f, 'r') as csvfile:
