@@ -1,20 +1,20 @@
-from ..db import DB
-from ..scdb.ingest import *
-from ..models import Case, Justice, Petitioner, Respondent, Vote, Party
-from ..config import SCDB_TEST_FILE
+from scotus.db import DB
+from scotus.db.models import Case, Justice, Petitioner, Respondent, Vote, Party
+from scotus.config import SCDB_TEST_FILE, TEST_DB
+from scotus.db.add import *
 from utilities import *
-
-def setup_module():
-  database.reset()
-  database.populate()
-  return
 
 class TestCase():
   @classmethod
   def setup_class(cls):
-    cls.session = database.Session()
-    cls.cases_q = cls.session.query(Case).filter(Case.scdb_id.in_(["1946-001", "1946-002"]))
+    database = DB(TEST_DB)
+    database.apply([add_justices, lambda x: add_scdb_votes(x, scdb_f=SCDB_TEST_FILE)])
     return
+    
+  def setup(self):
+    self.database = DB(TEST_DB)
+    self.session = self.database.Session()
+    self.cases_q = self.session.query(Case).filter(Case.scdb_id.in_(["1946-001", "1946-002"]))
 
   def test_winner(self):
     for case in self.cases_q.all():
@@ -35,9 +35,5 @@ class TestCase():
 
   @classmethod  
   def teardown_class(cls):
-    cls.session.close()
-
-def teardown_module():
-  database.reset()
-  return
-    
+    database = DB(TEST_DB)
+    database.reset()

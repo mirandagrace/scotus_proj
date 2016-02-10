@@ -2,17 +2,19 @@ from sqlalchemy import Column, Integer, String, Unicode, UnicodeText, Date, Bool
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
-from base import Base
+from .base import Base
 
 class Party(Base):
   __tablename__ = 'parties'
   
-  name = Column(Unicode(150))
-  side = Column('type', String(15), nullable=False)
-  kind = Column(Unicode(150))
-  location = Column(Unicode(50))
+  name = Column(Unicode(150)) # scdb oyez
+  side = Column('type', String(15), nullable=False) # scdb oyez
+  kind = Column(Unicode(150)) # scdb
+  location = Column(Unicode(50)) # scdb
+  
   case_id =  Column(Integer, ForeignKey('cases.id'), nullable=False)
   case = relationship("Case")
+  
   __mapper_args__ = {'polymorphic_on': side}
   
   def __repr__(self):

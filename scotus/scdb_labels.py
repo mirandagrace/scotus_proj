@@ -448,12 +448,12 @@ sc_disposition_labels = [
                       
 direction_labels = ['conservative', 'liberal', 'unspecifiable']
 
-decision_kind = ["opinion of the court (orally argued)",
-                 "per curiam (no oral argument)",
+decision_kind = ['majority opinion', #"opinion of the court (orally argued)",
+                 'per curiam', #"per curiam (no oral argument)",
                  "decrees",
                  "equally divided vote",
-                 "per curiam (orally argued)",
-                 "judgment of the Court (orally argued)",
+                 'per curiam' #"per curiam (orally argued)",
+                 'plurality opinion', #"judgment of the Court (orally argued)",
                  "seriatim"]
                  
 party_codes = {'1':	'attorney general of the United States, or his office',
