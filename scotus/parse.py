@@ -20,14 +20,14 @@ def process_string(s):
   
 # given a case dictionary from the scdb csv, return a dictionary of the arguments to the
 # Case constructor
-def parse_case(case_row):
+def parse_scdb_case(case_row):
   case = {}
   # string variables -- Variables that are strings and already in the form needed
   str_vars = [('caseId', 'scdb_id'), ('docket', 'docket'),
               ('caseName', 'name')]
   case.update(batch_process(case_row, str_vars, process_string))
   month, day, year = case_row['dateDecision'].split('/')
-  case['citation'] = parse_citation(case_row['usCite'])
+  case['citation'] = parse_scdb_citation(case_row['usCite'])
   case['dec_date'] = date(int(year), int(month), int(day))
   case['dec_unconst'] = case_row['declarationUncon']!='1'
   case['prec_alt'] = case_row['precedentAlteration']=='1'
@@ -54,7 +54,7 @@ def parse_case(case_row):
 
   return case
   
-def parse_citation(cite):
+def parse_scdb_citation(cite):
   try:
     c = cite.split(' U.S. ', 1)
     vol = int(c[0])
@@ -112,7 +112,7 @@ parse_party = parse_labels(party_codes, d=True, null='501')
 parse_justice_name = parse_labels(justice_names)
 #parse_vote_kind = parse_labels(vote_labels)
 
-def parse_parties(case_row):
+def parse_scdb_parties(case_row):
   try:
     petitioner_name, respondant_name = re.split(r' v[.] ', case_row['caseName'].decode('utf-8'), 1)
     petitioner = {'name' : petitioner_name, 'side':'petitioner'}
@@ -132,13 +132,13 @@ def parse_parties(case_row):
     respondent['winner'] = True
   return petitioner, respondent
   
-def parse_vote(vote_row, justice_id):
+def parse_scdb_vote(vote_row, justice_id):
   vote = {'justice_id': justice_id}
   vote['is_clear'] = vote_row['voteUnclear'] == '0'
   if vote_row['majority'] == '2':
-    vote['vote'] = 'majority'
+    vote['vote'] = u'majority'
   else:
-    vote['vote'] = 'minority'
+    vote['vote'] = u'minority'
   vote['direction'] =  parse_direction(vote_row['direction'])
   #vote['kind'] = parse_vote_kind(vote_row['vote'])
   #vote['kind'] = parse_vote_kind(vote_row['vote'])

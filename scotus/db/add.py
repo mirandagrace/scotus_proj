@@ -25,32 +25,14 @@ def add_justices(session, j_file=JUSTICES_FILE):
 
 def add_scdb_case(case_row, session):
   # make and add case
-  case = Case(**parse_case(case_row))
+  case = Case(**parse_scdb_case(case_row))
   session.add(case)
   # make and add parties
-  petitioner, respondent = parse_parties(case_row)
+  petitioner, respondent = parse_scdb_parties(case_row)
   case.petitioner = Petitioner(**petitioner)
   case.respondent = Respondent(**respondent)
   return case
   
-def add_oyez_case(self, case_data, citation, docket):
-  case_dict = {'citation': citation, 'docket':docket}
-  case_dict['name'] = case_data['name'].upcase().replace(' V. ', ' v. ')
-  case = Case(**case_dict)
-  petitioner = Party({'side':'petitioner', 'name':case_data['first_party']})
-  respondent = Party({'side':'respondent', 'name':case_data['second_party']})
-  if case_data['winning_side'] == petitioner.name:
-    petitioner.winner = True
-    respondent.winner = False
-  elif case_data['winning_side'] == respondent.name:
-    petitioner.winner = False
-    respondent.winner = True
-  else:
-    pass
-  case.petitioner = petitioner
-  case.respondent = respondent
-  return case
-
 def add_scdb_votes(session, scdb_f=SCDB_VOTES_FILE):
   justice_dict = Justice.by_name(session)
   with open(scdb_f, 'r') as csvfile:
@@ -62,5 +44,5 @@ def add_scdb_votes(session, scdb_f=SCDB_VOTES_FILE):
       if case == None or case.scdb_id != vote_row['caseId']:
         case = add_scdb_case(vote_row, session)
       justice_id = justice_dict[parse_justice_name(vote_row['justice'])]
-      case.votes.append(Vote(**parse_vote(vote_row, justice_id)))
+      case.votes.append(Vote(**parse_scdb_vote(vote_row, justice_id)))
   return

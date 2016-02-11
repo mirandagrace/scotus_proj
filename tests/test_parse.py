@@ -103,9 +103,9 @@ class TestParse():
   expected_respondents = [r1, r2]
   expected_votes = [v1, v2]
 
-  def test_parse_case(self):
+  def test_parse_scdb_case(self):
     for e, s in zip(self.expected_cases, self.test_strings):
-      case = parse_case(make_dict(s))
+      case = parse_scdb_case(make_dict(s))
       yield check_arguments, case, e
       
   def test_parse_male_justice(self):
@@ -114,8 +114,8 @@ class TestParse():
   def test_parse_female_justice(self):
     check_arguments(parse_justice(self.j1), {'name': 'Elena Kagan', 'gender':'F', 'appointed_by': 'Barack Obama', 'oyez_id': 15094, 'date_start': date(2010, 8, 7)})
 
-  def test_parse_parties(self):
-    parties = map(lambda x: parse_parties(make_dict(x)), self.test_strings)
+  def test_parse_scdb_parties(self):
+    parties = map(lambda x: parse_scdb_parties(make_dict(x)), self.test_strings)
     petitioners = map(lambda x: x[0], parties)
     respondents = map(lambda x: x[1], parties)
     for p, petitioner in zip(self.expected_petitioners, petitioners):
@@ -123,9 +123,9 @@ class TestParse():
     for r, respondent in zip(self.expected_respondents, respondents):
       yield check_arguments, r, respondent
       
-  def test_parse_vote(self):
+  def test_parse_sdcb_vote(self):
     id = 1
     for e, s in zip(self.expected_votes, self.test_strings):
-      vote = parse_vote(make_dict(s), id)
+      vote = parse_scdb_vote(make_dict(s), id)
       yield check_arguments, vote, e
       id += 1

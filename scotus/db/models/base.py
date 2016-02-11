@@ -6,7 +6,7 @@ class IdBase(object):
 
 Base = declarative_base(cls=IdBase)
 
-class Status(Base):
+class BuildStatus(Base):
   __tablename__ = 'status'
-  name = Column(Unicode(20))
+  name = Column(Unicode(20), nullable=False, unique=True)
   complete = Column(Boolean, nullable=False)

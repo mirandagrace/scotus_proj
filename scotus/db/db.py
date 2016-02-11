@@ -1,10 +1,10 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from contextlib import contextmanager
-from .add import add_justices, add_scdb_votes
-from .models.base import Base
+from .models import Base, BuildStatus
+from .build import Build
 
-# class that provides a single location for the runctions to manage 
+# class that provides a database management interface
 class DB:
   def __init__(self, url):
     self.url = url
@@ -17,15 +17,16 @@ class DB:
     with self.session_scope() as session:
       for transaction in transactions:
         transaction(session)
-        session.commit()
     return
     
-  def build(self):
-    with session_scope() as session:
-      add_justices(session)
-      session.commit()
-      add_scdb_votes(session)
-      session.commit()
+  def populate(self, build):
+    session = self.Session()
+    try:
+      build.run(session)
+    except:
+      raise
+    finally:
+      session.close()
     return
 
   def drop_all(self):
@@ -53,3 +54,6 @@ class DB:
       raise
     finally:
       session.close()
+      
+
+    

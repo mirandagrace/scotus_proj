@@ -24,6 +24,14 @@ def assert_t(d):
 
 def assert_f(d):
   assert not d
+
+def raises(fn, e):
+  try:
+    fn()
+  except e:
+    return True 
+  return False
+
   
 def check_arguments(d, expected_d):
   for k in expected_d:
