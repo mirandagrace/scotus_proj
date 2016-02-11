@@ -452,7 +452,7 @@ decision_kind = ['majority opinion', #"opinion of the court (orally argued)",
                  'per curiam', #"per curiam (no oral argument)",
                  "decrees",
                  "equally divided vote",
-                 'per curiam' #"per curiam (orally argued)",
+                 'per curiam', #"per curiam (orally argued)",
                  'plurality opinion', #"judgment of the Court (orally argued)",
                  "seriatim"]
                  

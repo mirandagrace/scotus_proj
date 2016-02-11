@@ -9,10 +9,10 @@ class TestCase:
   
   @classmethod
   def setup_class(cls):
+    cls.database.reset()
     build = Build()
     phase_1 = build.add(0, add_justices)
     phase_2 = build.add(1, lambda x: add_scdb_votes(x, scdb_f=SCDB_TEST_FILE), name='add_scdb_votes')
-    cls.database.reset()
     cls.database.populate(build)
     cls.session = cls.database.Session()
     return

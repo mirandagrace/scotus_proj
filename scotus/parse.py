@@ -91,7 +91,10 @@ def parse_labels(labels, null=None, d=False, failsilent=False):
       elif d:
         return labels[x].decode('utf-8')
       else:
-        return labels[int(x)-1].decode('utf-8')
+        try:
+          return labels[int(x)-1].decode('utf-8')
+        except IndexError:
+          raise IndexError, "{}".format(x)
     except:
       if failsilent:
         return None

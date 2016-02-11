@@ -1,1 +1,1 @@
-nosetests --exe --with-coverage --cover-erase --cover-inclusive --cover-branches --cover-package scotus
+nosetests --exe --with-coverage --cover-erase --cover-inclusive --cover-branches --cover-package scotus -v

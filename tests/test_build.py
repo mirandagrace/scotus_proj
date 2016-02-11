@@ -18,6 +18,7 @@ def test_no_duplication():
   phase_1 = build.add(0, add_justices)
   db.populate(build)
   db.populate(build)
+  db.reset()
   return
 
 def test_name_collision():

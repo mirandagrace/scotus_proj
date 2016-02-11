@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from scotus.parse import *
+from scotus.scdb_labels import female_justices
 from utilities import *
 
 class TestParse():
@@ -111,6 +112,9 @@ class TestParse():
   def test_parse_male_justice(self):
     check_arguments(parse_justice(self.j2), {'name': 'John G. Roberts, Jr.', 'gender':'M', 'appointed_by': 'George W. Bush', 'oyez_id': 15086, 'date_start': date(2005, 9, 29)})
     
+  def test_justice_labels(self):
+    assert 'Elena Kagan' in female_justices
+
   def test_parse_female_justice(self):
     check_arguments(parse_justice(self.j1), {'name': 'Elena Kagan', 'gender':'F', 'appointed_by': 'Barack Obama', 'oyez_id': 15094, 'date_start': date(2010, 8, 7)})
 
