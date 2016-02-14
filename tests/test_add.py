@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from scotus.db import DB
-from scotus.db.add import *
+from scotus.add import *
 from scotus.db.models import Case, Justice, Petitioner, Respondent, Vote, Party
 from scotus.config import SCDB_TEST_FILE, TEST_DB
 from utilities import *

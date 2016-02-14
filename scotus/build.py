@@ -1,4 +1,4 @@
-from .models import BuildStatus 
+from .db.models import BuildStatus 
 
 class Build:
   def __init__(self):

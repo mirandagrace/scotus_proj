@@ -1,8 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from contextlib import contextmanager
-from .models import Base, BuildStatus
-from .build import Build
+from .models import Base
 
 # class that provides a database management interface
 class DB:

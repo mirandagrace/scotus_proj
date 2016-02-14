@@ -1,5 +1,5 @@
-from scotus.db.build import Build
-from scotus.db.add import *
+from scotus.build import Build
+from scotus.add import *
 from scotus.db import DB
 from scotus.config import TEST_DB
 from utilities import *

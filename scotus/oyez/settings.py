@@ -10,8 +10,8 @@
 
 BOT_NAME = 'oyez'
 
-SPIDER_MODULES = ['oyez.spiders']
-NEWSPIDER_MODULE = 'oyez.spiders'
+SPIDER_MODULES = ['scotus.oyez.spiders']
+NEWSPIDER_MODULE = 'scotus.oyez.spiders'
 CONCURRENT_REQUESTS = 4
 DOWNLOAD_DELAY = 1
 

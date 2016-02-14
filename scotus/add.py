@@ -1,9 +1,9 @@
 import json
 from datetime import date
-from ..config import JUSTICES_FILE, SCDB_VOTES_FILE
-from ..parse import *
-from .models import Case, Justice, Petitioner, Respondent, Vote
-from ..scdb_labels import justice_names, female_justices
+from .config import JUSTICES_FILE, SCDB_VOTES_FILE
+from .parse import *
+from .db.models import Case, Justice, Petitioner, Respondent, Vote
+from .scdb_labels import justice_names, female_justices
   
 def add_justices(session, j_file=JUSTICES_FILE):
   added = []
