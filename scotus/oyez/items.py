@@ -53,6 +53,7 @@ class CaseItem(scrapy.Item):
   questions = scrapy.Field(output_processor = text_output_processor)
   petitioner = scrapy.Field()
   respondent = scrapy.Field()
+  description = scrapy.Field(output_processor = text_output_processor)
   
 class CaseLoader(JsonItemLoader):
   default_item_class = CaseItem
@@ -82,10 +83,11 @@ class CaseLoader(JsonItemLoader):
 
   def load_decision_data(l):
     l.add_json('dec_type', 'decision_type')
-    l.add_json('prec_alt', 'alteration_of_precident')
+    l.add_json('prec_alt', 'alteration_of_precedent')
     l.add_json('winning_party', 'winning_party')
     l.add_json('dec_unconst', 'unconstitutionality')
-    yield l.load_item()
+    l.add_json('description', 'description')
+    return l.load_item()
 
 class AdvocateItem(scrapy.Item):
   side = scrapy.Field()

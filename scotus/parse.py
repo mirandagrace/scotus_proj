@@ -65,7 +65,7 @@ def parse_scdb_citation(cite):
     
 def parse_justice(justice):
     jd = {}
-    jd['name'] = justice['name']
+    jd['name'] = justice['name'].decode('utf-8')
     jd['oyez_id'] = int(justice['ID'])
     if jd['name'] in female_justices:
       jd['gender'] = u'F'
@@ -80,7 +80,10 @@ def parse_justice(justice):
         jd['date_end'] = date.fromtimestamp(int(justice['roles'][0]['date_end']))
       except:
         pass
-    jd['appointed_by'] = justice['roles'][0]['appointing_president']
+    try:
+      jd['appointed_by'] = justice['roles'][0]['appointing_president'].decode('utf-8')
+    except:
+      jd['appointed_by'] = justice['roles'][0]['appointing_president']
     return jd
   
 def parse_labels(labels, null=None, d=False, failsilent=False):

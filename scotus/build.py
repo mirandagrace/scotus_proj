@@ -29,9 +29,9 @@ class Phase:
     self.precidence = precidence
     self.transaction = transaction
     if name != None:
-      self.name = name
+      self.name = name.decode('utf-8')   
     else:
-      self.name =  transaction.__name__   
+      self.name =  transaction.__name__.decode('utf-8')   
     
   def __call__(self, session):
     try:

@@ -12,6 +12,13 @@ class TestItemLoaders:
     result = dict(loader.load_case_data())
     check_arguments(item, result)
 
+  def check_load_decision_data(self, testfile, item):
+    with open(testfile, 'rb') as f:
+      case = json.load(f) 
+    loader = CaseLoader(case)
+    result = dict(loader.load_decision_data())
+    check_arguments(item, result)
+
   def test_case_loader_basic(self):
     item_1 = {'name':"Obergefell v. Hodges",
               'granted_date': date(2015, 1, 16),
@@ -25,5 +32,15 @@ class TestItemLoaders:
               'respondent':u"Richard Hodges, Director of the Ohio Department of Health, et al.",
               'volume': 576 }
     self.check_load_case_data('tests/pages/obergefell.json', item_1)
+
+  def test_decision_loader_basic(self):
+    item_1 = {
+      'dec_type': u'majority opinion',
+      'prec_alt': True,
+      'dec_unconst': False,
+      'winning_party': u'Obergefell',
+      'description': u"The Fourteenth Amendment requires both marriage licensing and recognition for same-sex couples."
+    }
+    self.check_load_decision_data('tests/pages/obergefell_decision.json', item_1)
 
   

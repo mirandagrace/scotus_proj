@@ -22,7 +22,7 @@ class TestCase:
     pass
     
   def get_cases(self):
-    return self.session.query(Case).filter(Case.scdb_id.in_(["1946-001", "1946-002"])).all()
+    return self.session.query(Case).filter(Case.scdb_id.in_([u"1946-001", u"1946-002"])).all()
 
   def test_winner(self):
     for case in self.get_cases():

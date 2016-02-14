@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from datetime import date
 import json
+import jmespath
+from datetime import date
 from scrapy.selector import Selector
 from w3lib.url import url_query_parameter
 from ..items import CaseItem, CaseLoader
@@ -36,6 +37,11 @@ class OyezSpider(scrapy.Spider):
       yield scrapy.Request(url=self.term_url(page), callback=self.parse_term)
 
   def parse_case(self, response):
+    '''
+      @url https://api.oyez.org/cases/2014/14-556
+      @returns requests 1 1
+      @returns items 0 0
+    '''
     json_response = json.loads(response.body)
     loader = CaseLoader(json_object=json_response)
     case = loader.load_case_data()
