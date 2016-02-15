@@ -5,7 +5,7 @@ import jmespath
 from datetime import date
 from scrapy.selector import Selector
 from w3lib.url import url_query_parameter
-from ..items import CaseItem, CaseLoader
+from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader
 
   
 class OyezSpider(scrapy.Spider):
@@ -42,21 +42,35 @@ class OyezSpider(scrapy.Spider):
       @returns requests 1 1
       @returns items 0 0
     '''
+    results = []
     json_response = json.loads(response.body)
     loader = CaseLoader(json_object=json_response)
     case = loader.load_case_data()
     case_id = case['oyez_id']
     decision_url = jmespath.search('decisions[0].href', json_response)
     if decision_url != None:
-      yield scrapy.Request(url=decision_url, callback=self.parse_decision, meta={'case': case})
+      results.append(scrapy.Request(url=decision_url, callback=self.parse_decision, meta={'case': case}))
     else:
-      yield case
+      results.append(case)
+    return results
     #advocates = json_response['advocates']
     #for advocate in advocates:
       
   def parse_decision(self, response):
+    '''
+      @url https://api.oyez.org/case_decision/case_decision/16363
+      @returns requests 0 0
+      @returns items 10 10
+    '''
+    results = []
     json_response = json.loads(response.body)
-    l = CaseLoader(json_object=json_response, item=response.meta['case'])
+    l = CaseLoader(json_object=json_response, item=response.meta.get('case', CaseItem()))
+    case = l.load_decision_data()
+    results.append(case)
+    votes_json = json_response['votes']
+    for vote_json in votes_json:
+      results.append(VoteLoader(vote_json).load_vote_data(case.get('oyez_id', None)))
+    return results
 
 
 

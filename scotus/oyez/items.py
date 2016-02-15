@@ -10,7 +10,7 @@ import jmespath
 import json
 from datetime import date
 from scrapy.contrib.loader import ItemLoader
-from scrapy.contrib.loader.processor import TakeFirst, MapCompose, Compose
+from scrapy.contrib.loader.processor import TakeFirst, MapCompose, Compose, Identity
 from w3lib.html import remove_tags
 
 class JsonItemLoader(ItemLoader):
@@ -88,6 +88,28 @@ class CaseLoader(JsonItemLoader):
     l.add_json('dec_unconst', 'unconstitutionality')
     l.add_json('description', 'description')
     return l.load_item()
+
+class VoteItem(scrapy.Item):
+  justice_oyez_id = scrapy.Field()
+  case_oyez_id = scrapy.Field()
+  vote = scrapy.Field()
+  opinion_written = scrapy.Field()
+  opinions_joined = scrapy.Field()
+
+class VoteLoader(JsonItemLoader):
+  default_item_class = VoteItem
+  default_ouput_processor = TakeFirst()
+  justice_oyez_id_in = integer_input_processor
+  opinions_joined_in = integer_input_processor
+  opinions_joined_out = Identity()
+
+  def load_vote_data(self, case_id):
+    self.add_value('case_oyez_id', case_id)
+    self.add_json('justice_oyez_id', 'member.ID')
+    self.add_json('vote', 'vote')
+    self.add_json('opinion_written', 'opinion_type')
+    self.add_json('opinions_joined', 'joining[*].ID')
+    return self.load_item()
 
 class AdvocateItem(scrapy.Item):
   side = scrapy.Field()

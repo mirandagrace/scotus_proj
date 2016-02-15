@@ -1,4 +1,4 @@
-from scotus.oyez.items import CaseLoader
+from scotus.oyez.items import CaseLoader, VoteLoader
 import json
 from datetime import date
 from scrapy.http import Response
@@ -17,6 +17,13 @@ class TestItemLoaders:
       case = json.load(f) 
     loader = CaseLoader(case)
     result = dict(loader.load_decision_data())
+    check_arguments(item, result)
+
+  def check_load_vote_data(self, testfile, item):
+    with open(testfile, 'rb') as f:
+      vote = json.load(f)
+    loader = VoteLoader(vote)
+    result = dict(loader.load_vote_data(56149))
     check_arguments(item, result)
 
   def test_case_loader_basic(self):
@@ -42,5 +49,15 @@ class TestItemLoaders:
       'description': u"The Fourteenth Amendment requires both marriage licensing and recognition for same-sex couples."
     }
     self.check_load_decision_data('tests/pages/obergefell_decision.json', item_1)
+
+  def test_vote_loader_basic(self):
+    item_1 = {
+      'case_oyez_id': 56149,
+      'justice_oyez_id': 15049,
+      'vote': u'minority',
+      'opinion_written': u'dissent',
+      'opinions_joined': [15086, 15100, 15068]
+    }
+    self.check_load_vote_data('tests/pages/obergefell_vote_scalia.json', item_1)
 
   

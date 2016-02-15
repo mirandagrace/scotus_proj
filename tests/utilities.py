@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from StringIO import StringIO
 from datetime import date
-from scotus.db import DB
-from scotus.db.models import Citation
 from scotus.config import TEST_DB, SCDB_TEST_FILE
 import csv
   

@@ -33,7 +33,7 @@ class Justice(Base):
 class Vote(Base):
   __tablename__ = 'votes'
   
-  is_clear = Column(Boolean, nullable=False) # scdb
+  is_clear = Column(Boolean) # scdb
   vote = Column(Unicode(20)) # scdb oyez
   direction = Column(Unicode(20)) # scdb
   
@@ -74,7 +74,7 @@ class Opinion(Base):
   __tablename__ = 'opinions'
   
   kind = Column(Unicode(20), nullable=False) # oyez casetext
-  type = Column(Unicode(20), nullable=False) # oyez casetext
+  opinion_type = Column(Unicode(20))
   text = Column(UnicodeText) # casetext
   
   justices_associated = relationship('OpinionAssociation', back_populates='opinion')
@@ -89,7 +89,7 @@ class Opinion(Base):
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
   case = relationship('Case', back_populates='opinions')
   
-  __mapper_args__ = {'polymorphic_on': type}
+  __mapper_args__ = {'polymorphic_on': kind}
   
 class Dissent(Opinion):
   __mapper_args__ = {'polymorphic_identity': 'dissent'}

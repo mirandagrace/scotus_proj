@@ -33,3 +33,6 @@ class Respondent(Party, CanWin):
   
 class Amicus(Party):
   __mapper_args__ = {'polymorphic_identity': 'amicus'}
+
+class Advocate(Base):
+  __tablename__ = 'advocates'
