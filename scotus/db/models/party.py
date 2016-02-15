@@ -8,7 +8,7 @@ class Party(Base):
   __tablename__ = 'parties'
   
   name = Column(Unicode(150)) # scdb oyez
-  side = Column('type', String(15), nullable=False) # scdb oyez
+  side = Column(String(15), nullable=False) # scdb oyez
   kind = Column(Unicode(150)) # scdb
   location = Column(Unicode(50)) # scdb
   
@@ -34,5 +34,4 @@ class Respondent(Party, CanWin):
 class Amicus(Party):
   __mapper_args__ = {'polymorphic_identity': 'amicus'}
 
-class Advocate(Base):
-  __tablename__ = 'advocates'
+

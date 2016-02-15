@@ -1,0 +1,18 @@
+{
+  "advocate": {
+    "ID": 22617,
+    "name": "Edwin S. Kneedler",
+    "href": "https:\/\/api.oyez.org\/people\/edwin_s_kneedler",
+    "view_count": 0,
+    "last_name": "Kneedler",
+    "roles": null,
+    "thumbnail": null,
+    "length_of_service": 0,
+    "identifier": "edwin_s_kneedler"
+  },
+  "advocate_role": {
+    "value": "amicus - us",
+    "label": "for the United States, as \u003Ci\u003Eamicus curiae\u003C\/i\u003E"
+  },
+  "advocate_description": "Deputy Solicitor General, for the United States as amicus curiae for the respondents"
+}

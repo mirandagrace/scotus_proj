@@ -1,4 +1,4 @@
-from scotus.oyez.items import CaseLoader, VoteLoader
+from scotus.oyez.items import CaseLoader, VoteLoader, AdvocateLoader
 import json
 from datetime import date
 from scrapy.http import Response
@@ -6,24 +6,27 @@ from utilities import *
 
 class TestItemLoaders:
   def check_load_case_data(self, testfile, item):
-    with open(testfile, 'rb') as f:
-      case = json.load(f) 
+    case = load_json(testfile)
     loader = CaseLoader(case)
     result = dict(loader.load_case_data())
     check_arguments(item, result)
 
   def check_load_decision_data(self, testfile, item):
-    with open(testfile, 'rb') as f:
-      case = json.load(f) 
+    case = load_json(testfile)
     loader = CaseLoader(case)
     result = dict(loader.load_decision_data())
     check_arguments(item, result)
 
   def check_load_vote_data(self, testfile, item):
-    with open(testfile, 'rb') as f:
-      vote = json.load(f)
+    vote = load_json(testfile)
     loader = VoteLoader(vote)
     result = dict(loader.load_vote_data(56149))
+    check_arguments(item, result)
+
+  def check_load_advocate_data(self, testfile, item):
+    advocate = load_json(testfile)
+    loader = AdvocateLoader(advocate)
+    result = dict(loader.load_advocate_data(56149))
     check_arguments(item, result)
 
   def test_case_loader_basic(self):
@@ -59,5 +62,15 @@ class TestItemLoaders:
       'opinions_joined': [15086, 15100, 15068]
     }
     self.check_load_vote_data('tests/pages/obergefell_vote_scalia.json', item_1)
+
+  def test_advocate_loader_basic(self):
+    item_1 = {
+      'case_oyez_id': 56149,
+      'description': "Deputy Solicitor General, for the United States as amicus curiae for the respondents",
+      'role': "amicus - us",
+      'name': "Edwin S. Kneedler",
+      'advocate_oyez_id': 22617
+    }
+    self.check_load_advocate_data('tests/pages/obergefell_advocate_kneedler.json', item_1)
 
   

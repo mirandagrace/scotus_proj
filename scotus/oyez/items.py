@@ -99,8 +99,6 @@ class VoteItem(scrapy.Item):
 class VoteLoader(JsonItemLoader):
   default_item_class = VoteItem
   default_ouput_processor = TakeFirst()
-  justice_oyez_id_in = integer_input_processor
-  opinions_joined_in = integer_input_processor
   opinions_joined_out = Identity()
 
   def load_vote_data(self, case_id):
@@ -112,9 +110,24 @@ class VoteLoader(JsonItemLoader):
     return self.load_item()
 
 class AdvocateItem(scrapy.Item):
-  side = scrapy.Field()
+  description = scrapy.Field()
+  role = scrapy.Field()
   name = scrapy.Field()
-  case = scrapy.Field()
+  case_oyez_id = scrapy.Field()
+  advocate_oyez_id = scrapy.Field()
+
+class AdvocateLoader(JsonItemLoader):
+  default_item_class = AdvocateItem
+  default_ouput_processor = TakeFirst()
+
+  def load_advocate_data(self, case_id):
+    self.add_value('case_oyez_id', case_id)
+    self.add_json('description', 'advocate_description')
+    self.add_json('role', 'advocate_role.value')
+    self.add_json('name', 'advocate.name')
+    self.add_json('advocate_oyez_id', 'advocate.ID')
+    return self.load_item()
+
 
 class TurnItem(scrapy.Item):
   speaker = scrapy.Field()

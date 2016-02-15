@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
+import csv
+import json
 from StringIO import StringIO
 from datetime import date
 from scotus.config import TEST_DB, SCDB_TEST_FILE
-import csv
-  
+
+
+def load_json(filename):
+  with open(testfile, 'rb') as f:
+    json_object = json.load(f) 
+  return json_object
+
 def make_dict(s):
   csvfile = StringIO(s)
   reader = csv.DictReader(csvfile, 
