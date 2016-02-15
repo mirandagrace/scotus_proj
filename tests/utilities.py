@@ -7,7 +7,7 @@ from scotus.config import TEST_DB, SCDB_TEST_FILE
 
 
 def load_json(filename):
-  with open(testfile, 'rb') as f:
+  with open(filename, 'rb') as f:
     json_object = json.load(f) 
   return json_object
 

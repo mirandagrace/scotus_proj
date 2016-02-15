@@ -1,0 +1,40 @@
+{
+  "start": 0,
+  "stop": 43.911,
+  "byte_start": 103424,
+  "byte_stop": 279071,
+  "speaker": {
+    "ID": 19936,
+    "name": "Charles K. Rice",
+    "href": "https:\/\/api.oyez.org\/people\/charles_k_rice",
+    "view_count": 0,
+    "last_name": "Rice",
+    "roles": null,
+    "thumbnail": null,
+    "length_of_service": 0,
+    "identifier": "charles_k_rice"
+  },
+  "text_blocks": [
+    {
+      "start": 0,
+      "stop": 11.407,
+      "byte_start": 103424,
+      "byte_stop": 149086,
+      "text": "I\u0027m including my remarks with respect to the (Inaudible) the application of 3616."
+    },
+    {
+      "start": 11.407,
+      "stop": 29.194,
+      "byte_start": 149086,
+      "byte_stop": 220244,
+      "text": "I think it is fair to say that the purposes applying that particular section were to -- to meet the protest of the District Courts, the various District Courts and the United States Attorneys in the various districts."
+    },
+    {
+      "start": 29.194,
+      "stop": 43.911,
+      "byte_start": 220244,
+      "byte_stop": 279071,
+      "text": "And to ameliorate a lot of the small taxpayer who was being subjected to a felony prosecution and summonses where the tax involved was as low as a $100 or a $150."
+    }
+  ]
+}

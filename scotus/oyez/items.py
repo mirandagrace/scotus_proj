@@ -8,9 +8,10 @@
 import scrapy
 import jmespath
 import json
-from datetime import date
+import dateutil.parser
+from datetime import date, datetime
 from scrapy.contrib.loader import ItemLoader
-from scrapy.contrib.loader.processor import TakeFirst, MapCompose, Compose, Identity
+from scrapy.contrib.loader.processor import TakeFirst, MapCompose, Compose, Identity, Join
 from w3lib.html import remove_tags
 
 class JsonItemLoader(ItemLoader):
@@ -24,7 +25,7 @@ class JsonItemLoader(ItemLoader):
     self.add_value(field_name, jmespath.search(jmes_path, self.json), *processors, **kwargs)
     
   def get_json(self, jmes_path, *processors, **kwargs):
-    self.get_value(jmespath.search(jmes_path, self.json), *processors, **kwargs)
+    return self.get_value(jmespath.search(jmes_path, self.json), *processors, **kwargs)
     
   def replace_json(self, field_name, jmes_path, *processors, **kwargs):
     self.add_value(field_name, jmespath.search(jmes_path, self.json), *processors, **kwargs)
@@ -128,11 +129,108 @@ class AdvocateLoader(JsonItemLoader):
     self.add_json('advocate_oyez_id', 'advocate.ID')
     return self.load_item()
 
+  def load_speaking_data(self, case_id):
+    self.add_value('case_oyez_id', case_id)
+    self.add_json('name', 'speaker.name')
+    self.add_json('advocate_oyez_id', 'speaker.ID')
+    return self.load_item()
+
+class ArgumentItem(scrapy.Item):
+  case_oyez_id = scrapy.Field()
+  date = scrapy.Field()
+  oyez_id = scrapy.Field()
+
+class ArgumentLoader(JsonItemLoader):
+  default_item_class = ArgumentItem
+  default_output_processor = TakeFirst()
+  date_in = MapCompose(lambda x: dateutil.parser.parse(x).date())
+
+  def load_argument_data(self, case_id):
+    self.add_value('case_oyez_id', case_id)
+    self.add_json('oyez_id', "id")
+    self.add_json('date', 'title', re=r'Oral Argument - ([A-Za-z 0-9,]+) ')
+    return self.load_item()
+
+class SectionItem(scrapy.Item):
+  argument_oyez_id = scrapy.Field()
+  section_number = scrapy.Field()
+  advocate_owner_id = scrapy.Field()
+
+class SectionLoader(JsonItemLoader):
+  default_item_class = SectionItem
+  default_output_processor = TakeFirst()
+
+  def load_section_data(self, argument_id, number):
+    self.add_value('argument_oyez_id', argument_id)
+    self.add_value('section_number', number)
+    return
+
+  def load_advocate_owner(self, advocate_oyez_id):
+    self.add_value('advocate_owner_id', advocate_oyez_id)
+    return self.load_item()
 
 class TurnItem(scrapy.Item):
-  speaker = scrapy.Field()
+  turn_number = scrapy.Field()
+  section_number = scrapy.Field()
+  argument_oyez_id = scrapy.Field()
   text = scrapy.Field()
-  context = scrapy.Field()
+  start = scrapy.Field()
+  end = scrapy.Field()
+
+class TurnLoader(JsonItemLoader):
+  default_item_class = TurnItem
+  default_output_processor = TakeFirst()
+  text_in = MapCompose(lambda x: x.encode('utf-8'), remove_tags, lambda x: x.strip())
+  text_out = Join(u' ')
+
+  def _load_base_data(self, argument_id, section_number, turn_number):
+    self.add_value('argument_oyez_id', argument_id)
+    self.add_value('section_number', section_number)
+    self.add_value('turn_number', turn_number)
+    self.add_json('start', 'start')
+    self.add_json('end', 'stop')
+    self.add_json('text', 'text_blocks[*].text')
+    return
+
+  def load_turn_data(self, argument_id, section_number, turn_number):
+    self._load_base_data(argument_id, section_number, turn_number)
+    return self.load_item()
+
+class JusticeTurnItem(TurnItem):
+  justice_oyez_id = scrapy.Field()
+
+class JusticeTurnLoader(TurnLoader):
+  default_item_class = JusticeTurnItem
+
+  def load_turn_data(self, argument_id, section_number, turn_number):
+    self._load_base_data(argument_id, section_number, turn_number)
+    self.add_json('justice_oyez_id', 'speaker.ID')
+    return self.load_item()
+
+class AdvocateTurnItem(TurnItem):
+  advocate_oyez_id = scrapy.Field()
+
+class AdvocateTurnLoader(TurnLoader):
+  default_item_class = AdvocateTurnItem
+
+  def load_turn_data(self, argument_id, section_number, turn_number):
+    self._load_base_data(argument_id, section_number, turn_number)
+    self.add_json('advocate_oyez_id', 'speaker.ID')
+    return self.load_item()
+
+def turn_loader_factory(turn_json):
+  speaker = turn_json['speaker']
+  role = jmespath.search('speaker.roles[0].type', turn_json)
+  if speaker == None:
+    return TurnLoader(turn_json)
+  elif role == None:
+    return AdvocateTurnLoader(turn_json)
+  elif role == 'scotus_justice':
+    return JusticeTurnLoader(turn_json)
+  else:
+    return TurnLoader(turn_json)
+  
+
 
 
 

@@ -1,8 +1,10 @@
-from scotus.oyez.items import CaseLoader, VoteLoader, AdvocateLoader
 import json
+import jmespath
 from datetime import date
-from scrapy.http import Response
 from utilities import *
+from scotus.oyez.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader
+from scotus.oyez.items import turn_loader_factory, JusticeTurnLoader, AdvocateTurnLoader, TurnLoader
+
 
 class TestItemLoaders:
   def check_load_case_data(self, testfile, item):
@@ -29,7 +31,47 @@ class TestItemLoaders:
     result = dict(loader.load_advocate_data(56149))
     check_arguments(item, result)
 
-  def test_case_loader_basic(self):
+  def check_load_argument_data(self, testfile, item):
+    argument = load_json(testfile)
+    loader = ArgumentLoader(argument)
+    result = dict(loader.load_argument_data(56149))
+    check_arguments(item, result)
+
+  def check_load_section_data(self, testfile, item):
+    section = load_json(testfile)
+    loader = SectionLoader(section)
+    loader.load_section_data(13186, 0)
+    result = dict(loader.load_advocate_owner(19936))
+    check_arguments(item, result)
+
+  def check_load_justice_turn_data(self, testfile, item):
+    turn = load_json(testfile)
+    loader = turn_loader_factory(turn)
+    assert loader.__class__ == JusticeTurnLoader
+    result = loader.load_turn_data(13186, 0, 0)
+    check_arguments(item, result)
+
+  def check_load_advocate_turn_data(self, testfile, item):
+    turn = load_json(testfile)
+    loader = turn_loader_factory(turn)
+    assert loader.__class__ == AdvocateTurnLoader
+    result = loader.load_turn_data(13186, 0, 1)
+    check_arguments(item, result)
+
+  def check_load_unknown_turn_data(self, testfile, item):
+    turn = load_json(testfile)
+    loader = turn_loader_factory(turn)
+    assert loader.__class__ == TurnLoader
+    result = loader.load_turn_data(16189, 0, 2)
+    check_arguments(item, result)
+
+  def check_load_advocate_speaking_data(self, testfile, item):
+    turn = load_json(testfile)
+    loader = AdvocateLoader(turn)
+    result = loader.load_speaking_data(59421)
+    check_arguments(item, result)
+
+  def test_case_loader(self):
     item_1 = {'name':"Obergefell v. Hodges",
               'granted_date': date(2015, 1, 16),
               'dec_date': date(2015, 6, 26),
@@ -43,7 +85,7 @@ class TestItemLoaders:
               'volume': 576 }
     self.check_load_case_data('tests/pages/obergefell.json', item_1)
 
-  def test_decision_loader_basic(self):
+  def test_decision_loader(self):
     item_1 = {
       'dec_type': u'majority opinion',
       'prec_alt': True,
@@ -53,7 +95,7 @@ class TestItemLoaders:
     }
     self.check_load_decision_data('tests/pages/obergefell_decision.json', item_1)
 
-  def test_vote_loader_basic(self):
+  def test_vote_loader(self):
     item_1 = {
       'case_oyez_id': 56149,
       'justice_oyez_id': 15049,
@@ -63,7 +105,7 @@ class TestItemLoaders:
     }
     self.check_load_vote_data('tests/pages/obergefell_vote_scalia.json', item_1)
 
-  def test_advocate_loader_basic(self):
+  def test_advocate_loader(self):
     item_1 = {
       'case_oyez_id': 56149,
       'description': "Deputy Solicitor General, for the United States as amicus curiae for the respondents",
@@ -72,5 +114,66 @@ class TestItemLoaders:
       'advocate_oyez_id': 22617
     }
     self.check_load_advocate_data('tests/pages/obergefell_advocate_kneedler.json', item_1)
+
+  def test_advocate_load_speaking(self):
+    item_1 = {
+      'case_oyez_id':59421,
+      'name': "Charles K. Rice",
+      'advocate_oyez_id': 19936
+    }
+    self.check_load_advocate_speaking_data('tests/pages/advocate_turn.json', item_1)
+
+  def test_argument_loader_basic(self):
+    item_1 = {
+      'case_oyez_id': 56149,
+      'oyez_id': 23751,
+      'date': date(2015, 4, 28)
+    }
+    self.check_load_argument_data('tests/pages/obergefell_transcript_1.json', item_1)
+
+  def test_section_loader(self):
+    item_1 = {
+      'argument_oyez_id': 13186,
+      'section_number': 0,
+      'advocate_owner_id': 19936
+    }
+    self.check_load_section_data('tests/pages/oregon_section.json', item_1)
+
+  def test_justice_turn_loader(self):
+    item_1 = {
+      'argument_oyez_id': 13186,
+      'section_number': 0,
+      'turn_number': 0,
+      'justice_oyez_id': 15089,
+      'start': 43.911,
+      'end': 55.349,
+      'text': "You -- I suppose have put in your brief the names of those cases and the amounts involved in them substantially to the statement?"
+    }
+    self.check_load_justice_turn_data('tests/pages/justice_turn.json', item_1)
+
+  def test_advocate_turn_loader(self):
+    item_1 = {
+      'argument_oyez_id': 13186,
+      'section_number': 0,
+      'turn_number': 1,
+      'advocate_oyez_id': 19936,
+      'start': 0,
+      'end': 43.911,
+      'text': u"I\u0027m including my remarks with respect to the (Inaudible) the application of 3616. I think it is fair to say that the purposes applying that particular section were to -- to meet the protest of the District Courts, the various District Courts and the United States Attorneys in the various districts. And to ameliorate a lot of the small taxpayer who was being subjected to a felony prosecution and summonses where the tax involved was as low as a $100 or a $150."
+    }
+    self.check_load_advocate_turn_data('tests/pages/advocate_turn.json', item_1)
+
+  def test_unknown_turn_loader(self):
+    item_1 = {
+      'argument_oyez_id': 16189,
+      'section_number': 0,
+      'turn_number': 2,
+      'start': 886.611,
+      'end': 892.361,
+      'text': "Well, we reserved it only one way, in one direction?"
+    }
+    self.check_load_unknown_turn_data('tests/pages/unknown_turn.json', item_1)
+
+
 
   

@@ -5,7 +5,8 @@ import jmespath
 from datetime import date
 from scrapy.selector import Selector
 from w3lib.url import url_query_parameter
-from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader
+from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader, AdvocateTurnItem
+from ..items import ArgumentLoader, SectionLoader, turn_loader_factory
 
   
 class OyezSpider(scrapy.Spider):
@@ -39,7 +40,7 @@ class OyezSpider(scrapy.Spider):
   def parse_case(self, response):
     '''
       @url https://api.oyez.org/cases/2014/14-556
-      @returns requests 1 1
+      @returns requests 8 8
       @returns items 0 0
     '''
     results = []
@@ -56,9 +57,16 @@ class OyezSpider(scrapy.Spider):
       results.append(scrapy.Request(url=decision_url, callback=self.parse_decision, meta={'case': case}))
     else:
       results.append(case)
+
+    # if there is advocacy data, go and get it
     advocate_links = jmespath.search('advocates[*].href', json_response)
     for advocate_link in advocate_links:
       results.append(scrapy.Request(url=advocate_link, callback=self.parse_advocate, meta={'case_id':case_id}))
+
+    # if there is transcript data, go and get it
+    transcript_links = jmespath.search('oral_argument_audio[*].href', json_response)
+    for transcript_link in transcript_links:
+      results.append(scrapy.Request(url=transcript_link, callback=self.parse_transcript, meta={'case_id':case_id}))
     return results
       
   def parse_decision(self, response):
@@ -86,6 +94,53 @@ class OyezSpider(scrapy.Spider):
     '''
     json_response = json.loads(response.body)
     return AdvocateLoader(json_response).load_advocate_data(response.meta.get('case_id', None))
+
+  def parse_transcript(self, response):
+    '''
+      @url http://api.oyez.org/case_media/oral_argument_audio/16189
+      @returns items 155 155
+      @returns requests 0 0
+    '''
+    # 1 argument 4 sections  # 18 20 105 4 # 3 advocates
+    results = []
+    advocate_ids_seen = set([])
+    json_response = json.loads(response.body)
+    case_oyez_id = response.meta.get('case_id', None)
+
+    # parse the arguments
+    argument = ArgumentLoader(json_response).load_argument_data(case_oyez_id)
+    argument_oyez_id = argument['oyez_id']
+    results.append(argument)
+
+    # parse the sections
+    sections = jmespath.search('transcript.sections', json_response)
+    for section_number, section_json in enumerate(sections):
+      section_loader = SectionLoader(section_json)
+      section_loader.load_section_data(argument_oyez_id, section_number)
+
+      # parse turns
+      turns = jmespath.search('turns', section_json)
+      section = None # keep track of if we've found the advocate owner of the section yet
+      for turn_number, turn_json in enumerate(turns):
+        # load turn data
+        turn = turn_loader_factory(turn_json).load_turn_data(argument_oyez_id, section_number, turn_number)
+        if turn.__class__ == AdvocateTurnItem:
+          advocate_id = turn['advocate_oyez_id']
+          if advocate_id not in advocate_ids_seen: # if we haven't seen the advocate before
+            advocate = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id) # load the advocate data
+            results.append(advocate)
+            advocate_ids_seen.add(advocate['advocate_oyez_id']) # update the seen set
+          else:
+            pass
+          if section == None: # if we haven't assigned a primary advocate to the section yet
+            section = section_loader.load_advocate_owner(advocate_id)
+            results.append(section)
+          else:
+            pass
+        else:
+          pass
+        results.append(turn)
+    return results
 
 
 

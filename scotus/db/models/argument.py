@@ -10,7 +10,7 @@ class Advocate(Base):
   name = Column(Unicode(150)) # oyez
   oyez_id = Column(Integer, index=True) # oyez
   gender = Column(Unicode(1)) # calculated
-  case_advocacies = relationship('Advocacies', back_populates='advocate')
+  case_advocacies = relationship('Advocacy', back_populates='advocate')
   cases = association_proxy('case_advocacies', 'case')
 
 class Advocacy(Base):
@@ -26,6 +26,7 @@ class Advocacy(Base):
 class Argument(Base):
   __tablename__ = 'arguments'
   date = Column(Date)
+  oyez_id = Column(Integer, index=True)
 
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
   case = relationship('Case', back_populates='arguments')
@@ -35,10 +36,12 @@ class Argument(Base):
 class Section(Base):
   __tablename__ = 'sections'
 
+  number = Column(Integer, nullable=False)
+
   argument_id = Column(Integer, ForeignKey('arguments.id'), nullable=False)
   argument = relationship('Argument', back_populates='sections')
 
-  advocacy_id = Column(Integer, ForeignKey('advocacies.id'), nullable=False))
+  advocacy_id = Column(Integer, ForeignKey('advocacies.id'), nullable=False)
   advocacy = relationship('Advocacy')
   advocate = association_proxy('advocacy', 'advocate')
 
