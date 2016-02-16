@@ -1,7 +1,7 @@
 from scotus.db import DB
 from scotus.build import Build
 from scotus.db.models import Case, Justice, Petitioner, Respondent, Vote, Party
-from scotus.config import SCDB_TEST_FILE, TEST_DB
+from scotus.settings import SCDB_TEST_FILE, TEST_DB
 from scotus.add import *
 from utilities import *
 

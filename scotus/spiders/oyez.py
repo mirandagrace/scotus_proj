@@ -30,12 +30,14 @@ class OyezSpider(scrapy.Spider):
       @returns items 0 0
     '''
     cases = json.loads(response.body)
+    results = []
     for case in cases:
       url = case['href']
-      yield scrapy.Request(url=url, callback=self.parse_case)
+      results.append(scrapy.Request(url=url, callback=self.parse_case))
     if len(cases)>=30:
       page = int(url_query_parameter(response.url, 'page')) + 1
-      yield scrapy.Request(url=self.term_url(page), callback=self.parse_term)
+      results.append(scrapy.Request(url=self.term_url(page), callback=self.parse_term))
+    return results
 
   def parse_case(self, response):
     '''
@@ -60,6 +62,8 @@ class OyezSpider(scrapy.Spider):
 
     # if there is advocacy data, go and get it
     advocate_links = jmespath.search('advocates[*].href', json_response)
+    if advocate_links == None:
+      advocate_links = []
     for advocate_link in advocate_links:
       results.append(scrapy.Request(url=advocate_link, callback=self.parse_advocate, meta={'case_id':case_id}))
 
@@ -114,6 +118,8 @@ class OyezSpider(scrapy.Spider):
 
     # parse the sections
     sections = jmespath.search('transcript.sections', json_response)
+    if sections == None:
+      sections = []
     for section_number, section_json in enumerate(sections):
       section_loader = SectionLoader(section_json)
       section_loader.load_section_data(argument_oyez_id, section_number)

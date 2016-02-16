@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from .config import JUSTICES_FILE, SCDB_VOTES_FILE
+from .settings import JUSTICES_FILE, SCDB_VOTES_FILE
 from .parse import *
 from .db.models import Case, Justice, Petitioner, Respondent, Vote
 from .scdb_labels import justice_names, female_justices
@@ -32,6 +32,7 @@ def add_scdb_case(case_row, session):
   case.petitioner = Petitioner(**petitioner)
   case.respondent = Respondent(**respondent)
   return case
+
   
 def add_scdb_votes(session, scdb_f=SCDB_VOTES_FILE):
   justice_dict = Justice.by_name(session)

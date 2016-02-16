@@ -1,6 +1,6 @@
 from scotus.db import DB
 from scotus.build import Build
-from scotus.config import TEST_DB
+from scotus.settings import TEST_DB
 from scotus.add import add_justices, add_scdb_votes
 
 def build_db():

@@ -38,7 +38,7 @@ class Case(Base):
   __tablename__ = 'cases'
   
   # Identification Variables
-  scdb_id = Column(Unicode(20), nullable=False, unique=True, index=True) # scdb
+  scdb_id = Column(Unicode(20), index=True) # scdb
   oyez_id = Column(Integer, index=True) # oyez
   volume = Column(Integer) # scdb oyez
   page = Column(Integer) # scdb oyez

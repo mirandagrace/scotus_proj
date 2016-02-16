@@ -2,8 +2,8 @@ import json
 import jmespath
 from datetime import date
 from utilities import *
-from scotus.oyez.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader
-from scotus.oyez.items import turn_loader_factory, JusticeTurnLoader, AdvocateTurnLoader, TurnLoader
+from scotus.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader
+from scotus.items import turn_loader_factory, JusticeTurnLoader, AdvocateTurnLoader, TurnLoader
 
 
 class TestItemLoaders:

@@ -3,7 +3,6 @@ import csv
 import json
 from StringIO import StringIO
 from datetime import date
-from scotus.config import TEST_DB, SCDB_TEST_FILE
 
 
 def load_json(filename):

@@ -1,7 +1,7 @@
 from scotus.build import Build
 from scotus.add import *
 from scotus.db import DB
-from scotus.config import TEST_DB
+from scotus.settings import TEST_DB
 from utilities import *
 
 
