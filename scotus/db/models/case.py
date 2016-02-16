@@ -2,7 +2,9 @@ from sqlalchemy import Column, Integer, String, Unicode, UnicodeText, Date, Bool
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableComposite
 from sqlalchemy.orm import relationship, composite
-from .base import Base
+from sqlalchemy import bindparam
+from .base import Base, bakery
+from sqlalchemy import or_, and_
 
 class Citation(MutableComposite):
   def __init__(self, volume, page):
@@ -116,6 +118,15 @@ class Case(Base):
     
   def __repr__(self):
     return '<Case(docket={}, name={})>'.format(self.docket, self.name)
+    
+  @classmethod
+  def search_for_scraped(cls, session, docket=None, volume=None, page=None):
+    baked_query = bakery(lambda session: session.query(cls))
+    baked_query += lambda q: q.filter(or_(cls.docket == bindparam('docket'), 
+                                          and_(cls.volume == bindparam('volume'),
+                                               cls.page == bindparam('page'))))
+    result = baked_query(session).params(docket=docket, volume=volume, page=page).one_or_none()
+    return result
     
 class Question(Base):
   __tablename__ = 'questions'

@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, Unicode, Boolean
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext import baked
 
 class IdBase(object):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
 Base = declarative_base(cls=IdBase)
+bakery = baked.bakery()
 
 class BuildStatus(Base):
   __tablename__ = 'status'

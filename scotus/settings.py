@@ -16,7 +16,6 @@ CONCURRENT_REQUESTS = 4
 DOWNLOAD_DELAY = 1
 
 ITEM_PIPELINES = {
-    'scotus.pipelines.CasePipeline': 300,
     'scotus.pipelines.OyezPipeline': 800,
 }
 

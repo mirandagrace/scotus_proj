@@ -12,6 +12,8 @@ import dateutil.parser
 from datetime import date, datetime
 from scrapy.contrib.loader import ItemLoader
 from scrapy.contrib.loader.processor import TakeFirst, MapCompose, Compose, Identity, Join
+from .db.models import *
+from sqlalchemy import bindparam
 from w3lib.html import remove_tags
 
 class JsonItemLoader(ItemLoader):
@@ -35,7 +37,54 @@ integer_input_processor = MapCompose(lambda x: int(x))
 timestamp_input_processor = MapCompose(lambda x: date.fromtimestamp(x))
 text_output_processor = Compose(MapCompose(lambda x: x.strip()), TakeFirst())
 
-class CaseItem(scrapy.Item):
+class AlchemyItem(scrapy.Item):
+  Model = None
+  update_fields = frozenset([])
+  exclude_model_fields = frozenset([])
+  search_fields = frozenset([])
+  
+  def clean(self):
+    pass
+    
+  def on_add_record(self, record):
+    pass
+    
+  def on_update_record(self, record):
+    pass
+    
+  def _add_args(self):
+    return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v}
+    
+  def _add_record(self):
+    print self._add_args().keys()
+    record = self.Model(**self._add_args())
+    self.on_add_record(record)
+    return record
+    
+  def _get(self, session):
+    return self.Model.search_for_scraped(session, **self._search_args())
+    
+  def _search_args(self):
+    return {k:v for k,v in dict(self).items() if k in self.search_fields and v}
+    
+  def send(self, session):
+    self.clean()
+    item_obj = self._get(session)
+    if item_obj == None:
+      item_obj = self._add_record()
+      session.add(item_obj)
+    else:
+      self._update_record(item_obj)
+    self.on_update_record(item_obj)
+      
+  def _update_args(self):
+    return {k:v for k,v in dict(self).items() if k in self.update_fields and v}
+    
+  def _update_record(self, record):
+    for k, v in self._update_args().items():
+      setattr(record, k, v)
+   
+class CaseItem(AlchemyItem):
   # define the fields for your item here like:
   name = scrapy.Field()
   granted_date = scrapy.Field()
@@ -47,10 +96,10 @@ class CaseItem(scrapy.Item):
   oyez_id = scrapy.Field()
   volume = scrapy.Field()
   page = scrapy.Field()
+  citation = scrapy.Field()
   dec_type = scrapy.Field()
   prec_alt = scrapy.Field()
   dec_unconst = scrapy.Field()
-  winning_party = scrapy.Field()
   winning_party = scrapy.Field()
   winning_side = scrapy.Field()
   losing_side = scrapy.Field()
@@ -58,6 +107,43 @@ class CaseItem(scrapy.Item):
   petitioner = scrapy.Field()
   respondent = scrapy.Field()
   description = scrapy.Field(output_processor = text_output_processor)
+  
+  Model = Case
+  update_fields = frozenset(['oyez_id', 'decision', 'granted_date', 'conclusion', 'description'])
+  exclude_model_fields = frozenset(['questions', 'petitioner', 'respondent', 'winning_party'])
+  search_fields = frozenset(['docket', 'volume', 'page'])
+  
+  def clean(item):
+    wp = item.get('winning_party', '')
+    if wp in item.get('petitioner', ''):
+      item['winning_side'] = u'petitioner'
+      item['losing_side'] = u'respondent'
+    elif wp in item.get('respondent', ''):
+      item['winning_side'] = u'respondent'
+      item['losing_side'] = u'petitioner'
+    else:
+      pass
+    
+  def on_add_record(self, record):
+    if self['winning_party'] == 'petitioner':
+      record.petitioner = Petitioner(name=self.get('petitioner', None), winner=True)
+      record.respondent = Respondent(name=self.get('respondent', None), winner=False)
+    elif self['winning_party'] == 'respondent':
+      record.petitioner = Petitioner(name=self.get('petitioner', None), winner=False)
+      record.respondent = Respondent(name=self.get('respondent', None), winner=True)
+    else:
+      record.respondent = Respondent(name=self.get('respondent', None))
+      record.petitioner = Petitioner(name=self.get('petitioner', None))
+
+  def on_update_record(self, record):
+    questions = self.get('questions', None)
+    if questions != None:
+      questions = map(lambda x: x.strip('0123456789()').strip(), questions.split('\n'))
+    conclusions = self.get('conclusion', None)
+    if conclusions != None:
+      conclusions = conclusions.split('.', 1)[0].split(',')
+    for q, c in zip(questions, conclusions):
+      record.questions.append(Question(text=q, disposition=c.lower()))
   
 class CaseLoader(JsonItemLoader):
   default_item_class = CaseItem

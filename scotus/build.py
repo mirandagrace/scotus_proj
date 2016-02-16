@@ -35,15 +35,10 @@ class Phase:
     
   def __call__(self, session):
     try:
-      status_query = session.query(BuildStatus).filter(BuildStatus.name == self.name).all()
-      if len(status_query) == 0: 
+      status = session.query(BuildStatus).filter(BuildStatus.name == self.name).one_or_none()
+      if status == None: 
         status = BuildStatus(name=self.name, complete=False)
         session.add(status)
-      elif len(status_query) == 1: 
-        status = status_query[0]
-      else:  # pragma: no cover
-        status_query.one()
-
       if not status.complete:
         self.transaction(session)
         status.complete = True
@@ -51,5 +46,4 @@ class Phase:
     except:
       session.rollback()
       raise
-    return
     
