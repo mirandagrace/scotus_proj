@@ -1,0 +1,35 @@
+{
+  "member": {
+    "ID": 15068,
+    "name": "Samuel A. Alito, Jr.",
+    "href": "https:\/\/api.oyez.org\/people\/samuel_alito_jr",
+    "view_count": 0,
+    "last_name": "Alito",
+    "roles": [
+      {
+        "id": 2712,
+        "type": "scotus_justice",
+        "date_start": 1138687200,
+        "date_end": 0,
+        "appointing_president": "George W. Bush",
+        "role_title": "Associate Justice of the Supreme Court of the United States",
+        "institution_name": "Supreme Court of the United States",
+        "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2712"
+      }
+    ],
+    "thumbnail": {
+      "id": 32684,
+      "mime": "image\/png",
+      "size": 44799,
+      "href": "https:\/\/api.oyez.org\/sites\/default\/files\/samuel_a_alito_jr_1.png"
+    },
+    "length_of_service": 3531,
+    "identifier": "samuel_alito_jr"
+  },
+  "vote": "minority",
+  "opinion_type": "dissent",
+  "joining": null,
+  "seniority": 7,
+  "ideology": 2.48,
+  "href": "https:\/\/api.oyez.org\/decision_vote\/decision_vote\/205320"
+}

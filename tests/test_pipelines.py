@@ -1,6 +1,6 @@
 from utilities import *
 from scotus.pipelines import *
-from scotus.items import CaseLoader
+from scotus.items import CaseLoader, VoteLoader
 from scotus.settings import TEST_DB, SCDB_TEST_FILE
 from scotus.add import add_justices, add_scdb_votes
 from scotus.build import Build
@@ -12,9 +12,14 @@ def make_case(case_file, decision_file):
   decision_item = CaseLoader(decision_json, item=case_item).load_decision_data()
   return case_item
 
+def make_vote(vote_file, id):
+  vote_json = load_json(vote_file)
+  vote_item = VoteLoader(vote_json).load_vote_data(id)
+  return vote_item
+
 class TestPipelines(object):
-  @classmethod
-  def setup_class(cls):
+  #@classmethod
+  def setup(cls):
     db = DB(TEST_DB)
     db.reset()
     build = Build()
@@ -43,9 +48,37 @@ class TestPipelines(object):
     case = self.pipeline.session.query(Case).filter(Case.docket==u"13-1371").scalar()
     assert_t(len(case.questions) == 1)
     assert_t(case.oyez_id == 56072)
+
+  def test_vote_joining_only(self):
+    self.test_send_existing_case()
+    vote_query = self.pipeline.session.query(Vote)
+    vote_query = vote_query.join(Case, Vote.case).join(Justice, Vote.justice)
+    vote_query = vote_query.filter(Case.docket == u"13-1371").filter(Justice.oyez_id == 15086).one()
+    j = vote_query.justice
+    vote = make_vote('tests/pages/vote_joining_only.json', 56072)
+    self.pipeline.process_item(vote, None)
+    justice = Justice.search_by_oyez_id(self.pipeline.session, 15086)
+    assert_t(len(justice.authored)==0)
+    assert_t(len(justice.joined)==1)
+
+
+  def test_vote_writing_only(self):
+    self.test_send_existing_case()
+    vote_query = self.pipeline.session.query(Vote).join(Case, Vote.case).join(Justice, Vote.justice)
+    vote_query = vote_query.filter(Case.docket == u"13-1371", Justice.oyez_id == 15068).one()
+    print vote_query.justice
+    assert_t(len(vote_query.justice.joined)==0)
+    vote = make_vote('tests/pages/writing_only.json', 56072)
+    self.pipeline.process_item(vote, None)
+    j = Justice.search_by_oyez_id(self.pipeline.session, 15068)
+    print j.joined
+    print j.authored
+    assert_t(len(j.authored)==1)
+    assert_t(len(j.joined)==0)
     
   def teardown(self):
     self.pipeline.close_session()
+    DB(TEST_DB).reset()
     
   @classmethod
   def teardown_class(cls):

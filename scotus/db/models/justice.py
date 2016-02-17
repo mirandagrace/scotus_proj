@@ -2,7 +2,9 @@ from sqlalchemy import Column, Integer, String, Unicode, UnicodeText, Date, Bool
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from .base import Base
+from sqlalchemy import bindparam
+from .base import Base, bakery
+from .case import Case
 
 class Justice(Base):
   __tablename__ = 'justices'
@@ -21,7 +23,7 @@ class Justice(Base):
   opinions = association_proxy('opinion_associations', 'opinion')
   
   opinions_written = relationship('OpinionWritten', back_populates='justice')
-  authored = association_proxy('opinion_written', 'opinion')
+  authored = association_proxy('opinions_written', 'opinion')
   
   opinions_joined = relationship('OpinionJoined', back_populates='justice')
   joined = association_proxy('opinion_associations', 'opinion')
@@ -29,6 +31,13 @@ class Justice(Base):
   @classmethod
   def by_name(cls, session):
     return dict([(name, id) for name, id in session.query(cls.name, cls.id)])
+
+  @classmethod
+  def search_by_oyez_id(cls, session, oyez_id):
+    baked_query = bakery(lambda session: session.query(cls))
+    baked_query += lambda q: q.filter(cls.oyez_id == bindparam('oyez_id'))
+    result = baked_query(session).params(oyez_id=oyez_id).one_or_none()
+    return result
 
 class Vote(Base):
   __tablename__ = 'votes'
@@ -38,10 +47,10 @@ class Vote(Base):
   direction = Column(Unicode(20)) # scdb
   
   justice_id = Column(Integer, ForeignKey('justices.id'), nullable=False)
-  justice = relationship('Justice', back_populates='votes')
+  justice = relationship('Justice', back_populates='votes', uselist=False)
   
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
-  case = relationship('Case', back_populates='votes')
+  case = relationship('Case', back_populates='votes', uselist=False)
   
   @property
   def side(self):
@@ -51,6 +60,14 @@ class Vote(Base):
       return self.case.winning_side
     if self.vote == 'minority':
       return self.case.losing_side
+
+  @classmethod
+  def search_for_scraped(cls, session, justice_oyez_id, case_oyez_id):
+    baked_query = bakery(lambda session: session.query(cls).join(Case, cls.case).join(Justice, cls.justice))
+    baked_query += lambda q: q.filter(Case.oyez_id == bindparam('case_oyez_id'),
+                                      Justice.oyez_id == bindparam('justice_oyez_id'))
+    result = baked_query(session).params(justice_oyez_id=justice_oyez_id, case_oyez_id=case_oyez_id).one_or_none()
+    return result
   
 class OpinionAssociation(Base):
   __tablename__ = 'opinionassociation'
@@ -65,31 +82,39 @@ class OpinionAssociation(Base):
   __mapper_args__ = {'polymorphic_on': kind}
   
 class OpinionWritten(OpinionAssociation):
-  __mapper_args__ = {'polymorphic_identity': 'wrote'}
+  __mapper_args__ = {'polymorphic_identity': u'wrote'}
   
 class OpinionJoined(OpinionAssociation):
-  __mapper_args__ = {'polymorphic_identity': 'joined'}
+  __mapper_args__ = {'polymorphic_identity': u'joined'}
   
 class Opinion(Base):
   __tablename__ = 'opinions'
   
-  kind = Column(Unicode(20), nullable=False) # oyez casetext
+  kind = Column(Unicode(20)) # oyez casetext
   opinion_type = Column(Unicode(20))
   text = Column(UnicodeText) # casetext
   
-  justices_associated = relationship('OpinionAssociation', back_populates='opinion')
+  justices_associated = relationship('OpinionAssociation', back_populates='opinion', cascade="all, delete-orphan")
   justices = association_proxy('justices_associated', 'justice')
   
-  justices_writing = relationship('OpinionWritten', back_populates='opinion')
+  justices_writing = relationship('OpinionWritten', back_populates='opinion', cascade="all, delete-orphan")
   authors = association_proxy('justices_writing', 'justice')
   
-  justices_joining = relationship('OpinionJoined', back_populates='opinion')
+  justices_joining = relationship('OpinionJoined', back_populates='opinion', cascade="all, delete-orphan")
   joiners = association_proxy('justices_joining', 'justice')
   
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
   case = relationship('Case', back_populates='opinions')
   
   __mapper_args__ = {'polymorphic_on': kind}
+
+  @classmethod
+  def search_by_author_vote(cls, session, case_id, author_id):
+    baked_query = bakery(lambda session: session.query(cls).join(OpinionWritten, cls.justices_writing))
+    baked_query += lambda q: q.filter(Case.id == bindparam('case_id'),
+                                      OpinionWritten.justice_id == bindparam('justice_id'))
+    result = baked_query(session).params(justice_id=author_id, case_id=case_id).one_or_none()
+    return result
   
 class Dissent(Opinion):
   __mapper_args__ = {'polymorphic_identity': 'dissent'}

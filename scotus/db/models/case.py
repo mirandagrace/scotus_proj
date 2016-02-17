@@ -118,6 +118,13 @@ class Case(Base):
     
   def __repr__(self):
     return '<Case(docket={}, name={})>'.format(self.docket, self.name)
+
+  @classmethod
+  def search_by_oyez_id(cls, session, oyez_id=None):
+    baked_query = bakery(lambda session: session.query(cls))
+    baked_query += lambda q: q.filter(cls.oyez_id == bindparam('oyez_id'))
+    result = baked_query(session).params(oyez_id=oyez_id).one_or_none()
+    return result
     
   @classmethod
   def search_for_scraped(cls, session, docket=None, volume=None, page=None):

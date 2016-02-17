@@ -6,21 +6,13 @@ from .db.models import Case, Justice, Petitioner, Respondent, Vote
 from .scdb_labels import justice_names, female_justices
   
 def add_justices(session, j_file=JUSTICES_FILE):
-  added = []
-  with open(j_file, 'r') as justices_json:
-    justices = json.load(justices_json)
-  for justice in justices:
+  justices = []
+  with open(j_file, 'r') as justices_jsonf:
+    justices_json = json.load(justices_jsonf)
+  for justice in justices_json:
     jd = parse_justice(justice)
-    session.add(Justice(**jd))
-    added.append(jd['name'])
-  for justice in justice_names:
-    if justice not in added:
-      if jd['name'] in female_justices:
-        gender = u'F'
-      else:
-        gender = u'M'
-      session.add(Justice(name=justice.decode('utf-8'), gender=gender))
-      added.append(justice)
+    justices.append(Justice(**jd))
+  session.bulk_save_objects(justices)
   return
 
 def add_scdb_case(case_row, session):
