@@ -7,14 +7,27 @@ from scrapy.selector import Selector
 from w3lib.url import url_query_parameter
 from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader, AdvocateTurnItem
 from ..items import ArgumentLoader, SectionLoader, turn_loader_factory
+import sexmachine.detector as gender
 
   
 class OyezSpider(scrapy.Spider):
   name = "oyez"
   allowed_domains = ["oyez.org"]
 
-  def __init__(self, term=2014):
+  def gender_processor(self, name):
+    first_name = name.split()
+    gender =  self.detector.get_gender(first_name)
+    if gender == 'female':
+      return u'F'
+    elif gender == 'male':
+      return u'M'
+    else:
+      return None
+
+
+  def __init__(self, term=2014, gdetector=None):
     self.term = term
+    self.detector = gdetector
     
   def term_url(self, page):
     return 'https://api.oyez.org/cases?filter=term:{}&page={}'.format(self.term, page)
@@ -94,10 +107,13 @@ class OyezSpider(scrapy.Spider):
       @url https://api.oyez.org/case_advocate/case_advocate/20934
       @returns requests 0 0
       @returns items 1 1
-      @scrapes advocate_oyez_id name role description
+      @scrapes oyez_id name role description
     '''
     json_response = json.loads(response.body)
-    return AdvocateLoader(json_response).load_advocate_data(response.meta.get('case_id', None))
+    loader = AdvocateLoader(json_response)
+    loader.add_json('gender', 'name', self.gender_processor)
+    return loader.load_advocate_data(response.meta.get('case_id', None))
+
 
   def parse_transcript(self, response):
     '''
@@ -135,7 +151,7 @@ class OyezSpider(scrapy.Spider):
           if advocate_id not in advocate_ids_seen: # if we haven't seen the advocate before
             advocate = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id) # load the advocate data
             results.append(advocate)
-            advocate_ids_seen.add(advocate['advocate_oyez_id']) # update the seen set
+            advocate_ids_seen.add(advocate['oyez_id']) # update the seen set
           else:
             pass
           if section == None: # if we haven't assigned a primary advocate to the section yet

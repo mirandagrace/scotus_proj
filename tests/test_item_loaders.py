@@ -111,7 +111,7 @@ class TestItemLoaders:
       'description': "Deputy Solicitor General, for the United States as amicus curiae for the respondents",
       'role': "amicus - us",
       'name': "Edwin S. Kneedler",
-      'advocate_oyez_id': 22617
+      'oyez_id': 22617
     }
     self.check_load_advocate_data('tests/pages/obergefell_advocate_kneedler.json', item_1)
 
@@ -119,7 +119,7 @@ class TestItemLoaders:
     item_1 = {
       'case_oyez_id':59421,
       'name': "Charles K. Rice",
-      'advocate_oyez_id': 19936
+      'oyez_id': 19936
     }
     self.check_load_advocate_speaking_data('tests/pages/advocate_turn.json', item_1)
 

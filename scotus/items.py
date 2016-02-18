@@ -56,9 +56,9 @@ class AlchemyItem(scrapy.Item):
     return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v}
     
   def _add_record(self, session):
-    print self._add_args().keys()
     record = self.Model(**self._add_args())
     self.on_add_record(session, record)
+    session.add(record)
     return record
     
   def _get(self, session):
@@ -196,17 +196,17 @@ class VoteItem(AlchemyItem):
     
   def on_add_record(self, session, record):
     record.case_id = Case.search_by_oyez_id(session, self['case_oyez_id']).id
-    record.justice_id = Justice.search_by_oyez_id(self['justice_oyez_id']).id
+    record.justice_id = Justice.search_by_oyez_id(session, self['justice_oyez_id']).id
     
   def on_update_record(self, session, record):
     if self['opinion_written'] != 'none':
       opinion = Opinion.search_by_author_vote(session, record.case_id, record.justice_id)
       if self['opinion_written'] in ['majority', 'plurality', 'per curiam']:
-        opinion_kind = 'majority'
+        opinion_kind = u'majority'
       elif self['opinion_written'] == 'dissent':
-        opinion_kind = 'dissent'
+        opinion_kind = u'dissent'
       elif self['opinion_written'] in ['concurrence', 'special concurrence']:
-        opinion_kind = 'concurrence'
+        opinion_kind = u'concurrence'
       else:
         opinion_kind = None
       if opinion == None:
@@ -247,12 +247,44 @@ class VoteLoader(JsonItemLoader):
     self.add_json('opinions_joined', 'joining[*].ID')
     return self.load_item()
 
-class AdvocateItem(scrapy.Item):
+class AdvocateItem(AlchemyItem):
   description = scrapy.Field()
+  side = scrapy.Field()
   role = scrapy.Field()
   name = scrapy.Field()
   case_oyez_id = scrapy.Field()
-  advocate_oyez_id = scrapy.Field()
+  oyez_id = scrapy.Field()
+  gender = scrapy.Field()
+
+  Model = Advocate
+  update_fields = frozenset([])
+  exclude_model_fields = frozenset(['description', 'case_oyez_id', 'role', 'side'])
+  search_fields = frozenset(['oyez_id'])
+  
+  def clean(self):
+    description = self.get('description', None)
+    if description == None:
+      pass
+    elif 'petitioner' in description.lower() or 'appellant' in description.lower():
+      self['side'] = u'petitioner'
+    elif 'respondent' in description.lower() or 'appellee' in description.lower():
+      self['side'] = u'respondent'
+    else:
+      pass
+    
+  def on_add_record(self, session, record):
+    pass
+    
+  def on_update_record(self, session, record):
+    case = Case.search_by_oyez_id(session, self['case_oyez_id'])
+    advocacy = Advocacy.search_for_scraped(session, case.id, self['oyez_id'])
+    if advocacy == None:
+      advocacy = Advocacy(side=self['side'], role=self['role'], case_id=case.id)
+      advocacy.advocate = record
+      session.add(advocacy)
+    else:
+      advocacy.side = self['side']
+      advocacy.role = self['role']
 
 class AdvocateLoader(JsonItemLoader):
   default_item_class = AdvocateItem
@@ -263,13 +295,13 @@ class AdvocateLoader(JsonItemLoader):
     self.add_json('description', 'advocate_description')
     self.add_json('role', 'advocate_role.value')
     self.add_json('name', 'advocate.name')
-    self.add_json('advocate_oyez_id', 'advocate.ID')
+    self.add_json('oyez_id', 'advocate.ID')
     return self.load_item()
 
   def load_speaking_data(self, case_id):
     self.add_value('case_oyez_id', case_id)
     self.add_json('name', 'speaker.name')
-    self.add_json('advocate_oyez_id', 'speaker.ID')
+    self.add_json('oyez_id', 'speaker.ID')
     return self.load_item()
 
 class ArgumentItem(scrapy.Item):

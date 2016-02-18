@@ -26,7 +26,7 @@ class Justice(Base):
   authored = association_proxy('opinions_written', 'opinion')
   
   opinions_joined = relationship('OpinionJoined', back_populates='justice')
-  joined = association_proxy('opinion_associations', 'opinion')
+  joined = association_proxy('opinions_joined', 'opinion')
   
   @classmethod
   def by_name(cls, session):
@@ -117,13 +117,13 @@ class Opinion(Base):
     return result
   
 class Dissent(Opinion):
-  __mapper_args__ = {'polymorphic_identity': 'dissent'}
+  __mapper_args__ = {'polymorphic_identity': u'dissent'}
   
 class Judgement(Opinion):
-  __mapper_args__ = {'polymorphic_identity': 'judgement'}
+  __mapper_args__ = {'polymorphic_identity': u'judgement'}
   
 class Concurrence(Opinion):
-  __mapper_args__ = {'polymorphic_identity': 'concurrence'}
+  __mapper_args__ = {'polymorphic_identity': u'concurrence'}
   
 # dissent
 # holding:
