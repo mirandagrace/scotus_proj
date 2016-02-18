@@ -25,9 +25,9 @@ class OyezSpider(scrapy.Spider):
       return None
 
 
-  def __init__(self, term=2014, gdetector=None):
+  def __init__(self, term=2014):
     self.term = term
-    self.detector = gdetector
+    self.detector = gender.Detector()
     
   def term_url(self, page):
     return 'https://api.oyez.org/cases?filter=term:{}&page={}'.format(self.term, page)
