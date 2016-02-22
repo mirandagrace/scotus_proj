@@ -44,8 +44,8 @@ class Argument(Base):
   __tablename__ = 'arguments'
   date = Column(Date)
   oyez_id = Column(Integer, index=True)
-
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
+  
   case = relationship('Case', back_populates='arguments')
 
   sections = relationship('Section', back_populates='argument')

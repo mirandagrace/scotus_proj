@@ -5,8 +5,10 @@ import jmespath
 from datetime import date
 from scrapy.selector import Selector
 from w3lib.url import url_query_parameter
+from ..settings import TEST_DB, DEFAULT_DB
 from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader, AdvocateTurnItem
 from ..items import ArgumentLoader, SectionLoader, turn_loader_factory
+from ..db.models import *
 import sexmachine.detector as gender
 
   
@@ -25,9 +27,14 @@ class OyezSpider(scrapy.Spider):
       return None
 
 
-  def __init__(self, term=2014):
+  def __init__(self, term=2014, test=False):
     self.term = term
     self.detector = gender.Detector()
+    if test:
+      self.db = DB(TEST_DB)
+    else:
+      self.db = DB(DEFAULT_DB)
+    self.session = db.Session()
     
   def term_url(self, page):
     return 'https://api.oyez.org/cases?filter=term:{}&page={}'.format(self.term, page)
@@ -64,14 +71,13 @@ class OyezSpider(scrapy.Spider):
     # load case
     loader = CaseLoader(json_object=json_response)
     case = loader.load_case_data()
+    case.send(self.session)
+
 
     # if there is explicit decision data, go and get it; otherwise add the case to the results
-    case_id = case['oyez_id']
     decision_url = jmespath.search('decisions[0].href', json_response)
     if decision_url != None:
       results.append(scrapy.Request(url=decision_url, callback=self.parse_decision, meta={'case': case}))
-    else:
-      results.append(case)
 
     # if there is advocacy data, go and get it
     advocate_links = jmespath.search('advocates[*].href', json_response)
@@ -90,29 +96,30 @@ class OyezSpider(scrapy.Spider):
     '''
       @url https://api.oyez.org/case_decision/case_decision/16363
       @returns requests 0 0
-      @returns items 10 10
     '''
-    results = []
     json_response = json.loads(response.body)
+
     l = CaseLoader(json_object=json_response, item=response.meta.get('case', CaseItem()))
     case = l.load_decision_data()
-    results.append(case)
+    case.send(self.session)
+
     votes_json = json_response['votes']
     for vote_json in votes_json:
-      results.append(VoteLoader(vote_json).load_vote_data(case.get('oyez_id', None)))
-    return results
+      vote = VoteLoader(vote_json).load_vote_data(case.get('oyez_id', None))
+      vote.send(self.session)
+    return
 
   def parse_advocate(self, response):
     '''
       @url https://api.oyez.org/case_advocate/case_advocate/20934
       @returns requests 0 0
-      @returns items 1 1
-      @scrapes oyez_id name role description
     '''
     json_response = json.loads(response.body)
     loader = AdvocateLoader(json_response)
     loader.add_json('gender', 'name', self.gender_processor)
-    return loader.load_advocate_data(response.meta.get('case_id', None))
+    advocate = loader.load_advocate_data(response.meta.get('case_id', None))
+    advocate.send()
+    return 
 
 
   def parse_transcript(self, response):

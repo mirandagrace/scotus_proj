@@ -1,9 +1,10 @@
 from utilities import *
-from scotus.pipelines import *
 from scotus.items import CaseLoader, VoteLoader, AdvocateLoader
 from scotus.settings import TEST_DB, SCDB_TEST_FILE
 from scotus.add import add_justices, add_scdb_votes
 from scotus.build import Build
+from scotus.db import DB
+from scotus.db.models import *
 
 def make_case(case_file, decision_file):
   case_json = load_json(case_file)
@@ -33,12 +34,12 @@ class TestPipelines(object):
     db.populate(build)
 
   def __init__(self):
-    self.pipeline = OyezPipeline(DB(TEST_DB))
-    self.pipeline.open_session()
-    self.session = self.pipeline.session
+    self.db = DB(TEST_DB)
+    self.session = self.db.Session()
 
   def send_case(self, case_file, decision_file):
-    self.pipeline.process_item(make_case(case_file, decision_file), None)
+    case = make_case(case_file, decision_file)
+    case.send(self.session)
 
   def update_case(self):
     self.send_case('tests/pages/housing.json', 'tests/pages/housing_decision.json')
@@ -64,14 +65,15 @@ class TestPipelines(object):
 
   def get_vote(self, justice, docket=None, case_oyez_id=None):
     vote = self.session.query(Vote).join(Case, Vote.case).join(Justice, Vote.justice).filter(Justice.oyez_id == justice)
-    if docket:
+    if docket != None:
       vote = vote.filter(Case.docket == docket)
-    if case_oyez_id:
+    if case_oyez_id != None:
       vote = vote.filter(Case.oyez_id == case_oyez_id)
     return vote.one_or_none()
 
   def send_vote(self, vote_file, id):
-    self.pipeline.process_item(make_vote(vote_file, id), None)
+    vote = make_vote(vote_file, id)
+    vote.send(self.session)
 
   def update_vote_joining_only(self):
     self.send_vote('tests/pages/vote_joining_only.json', 56072)
@@ -82,40 +84,41 @@ class TestPipelines(object):
   def new_vote_writing_and_joining_multiple(self):
     self.send_vote('tests/pages/obergefell_vote_scalia.json', 56149)
 
-  def new_vote_writing_only(self):
+  def new_vote_joining_only(self):
     self.send_vote('tests/pages/obergefell_ginsburg.json', 56149)
 
   def test_update_vote_joining_only(self):
     self.update_case()
-    vote = self.get_vote(15086, u"13-1371")
+    vote = self.get_vote(15086, docket=u"13-1371")
     assert_t(vote)
     justice = vote.justice
     assert_t(len(justice.authored)==0)
     assert_t(len(justice.joined)==0)
     self.update_vote_joining_only()
-    justice = Justice.search_by_oyez_id(self.pipeline.session, 15086)
+    justice = Justice.search_by_oyez_id(self.session, 15086)
     assert_t(len(justice.authored)==0)
     assert_t(len(justice.joined)==1)
 
   def test_update_vote_writing_only(self):
     self.update_case()    
-    vote = self.get_vote(15068, u"13-1371")
+    vote = self.get_vote(15068, docket=u"13-1371")
     assert_t(vote)
     assert_t(len(vote.justice.joined)==0)
     assert_t(len(vote.justice.authored)==0)
     self.update_vote_writing_only()
-    j = Justice.search_by_oyez_id(self.pipeline.session, 15068)
+    j = Justice.search_by_oyez_id(self.session, 15068)
     assert_t(len(j.authored)==1)
     assert_t(len(j.joined)==0)
 
   def test_new_vote_joining_only(self):
     self.new_case()
-    vote = self.get_vote(15084, docket=u"14-556")
-    assert_f(vote)
-    self.new_vote_writing_only()
     vote = self.get_vote(15084, case_oyez_id=56149)
-    j = vote.justice
+    assert_f(vote)
+    self.new_vote_joining_only()
+    print self.session.query(Vote).join(Case, Vote.case).join(Justice, Vote.justice).filter(Case.oyez_id==56149).all()
+    vote = self.get_vote(15084, case_oyez_id=56149)
     assert_t(vote)
+    j = vote.justice
     assert_t(vote.vote == u'majority')
     assert_t(len(j.joined) == 1)
     assert_t(len(j.authored) == 0)
@@ -126,18 +129,22 @@ class TestPipelines(object):
     assert_f(vote)
     self.new_vote_writing_and_joining_multiple()
     vote = self.get_vote(15049, case_oyez_id=56149)
-    j = vote.justice
     assert_t(vote)
+    j = vote.justice
     assert_t(vote.vote == u'minority')
     assert_t(len(j.joined) == 3)
     assert_t(len(j.authored) == 1)
     assert_t(j.authored[0].kind == 'dissent')
 
   def send_advocate(self, advocate_file, case_id):
-    self.pipeline.process_item(make_advocate(advocate_file, case_id), None)
+    advocate = make_advocate(advocate_file, case_id)
+    advocate.send(self.session)
 
   def new_advocate(self):
     self.send_advocate('tests/pages/obergefell_advocate_kneedler.json', 56149)
+
+  def update_advocate(self):
+    
 
   def test_new_advocate(self):
     self.new_case()
@@ -149,7 +156,7 @@ class TestPipelines(object):
     assert_t(len(advocate.cases)==1)
 
   def teardown(self):
-    self.pipeline.close_session()
+    self.session.close()
     DB(TEST_DB).reset()
     
   @classmethod

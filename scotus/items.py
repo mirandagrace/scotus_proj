@@ -51,6 +51,9 @@ class AlchemyItem(scrapy.Item):
     
   def on_update_record(self, session, record):
     pass
+
+  def on_send_record(self, session, record):
+    pass
     
   def _add_args(self):
     return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v}
@@ -70,19 +73,29 @@ class AlchemyItem(scrapy.Item):
   def send(self, session):
     self.clean()
     item_obj = self._get(session)
-    if item_obj == None:
-      item_obj = self._add_record(session)
-      session.add(item_obj)
-    else:
-      self._update_record(item_obj)
-    self.on_update_record(session, item_obj)
+    try:
+      if item_obj == None:
+        item_obj = self._add_record(session)
+      else:
+        self._update_record(session, item_obj)
+      session.commit()
+    except:
+      session.rollback()
+      raise
+    try:
+      self.on_send_record(session, item_obj)
+      session.commit()
+    except:
+      session.rollback()
+      raise
       
   def _update_args(self):
     return {k:v for k,v in dict(self).items() if k in self.update_fields and v}
     
-  def _update_record(self, record):
+  def _update_record(self, session, record):
     for k, v in self._update_args().items():
       setattr(record, k, v)
+    self.on_update_record(session, record)
    
 class CaseItem(AlchemyItem):
   # define the fields for your item here like:
@@ -135,7 +148,7 @@ class CaseItem(AlchemyItem):
       record.respondent = Respondent(name=self.get('respondent', None))
       record.petitioner = Petitioner(name=self.get('petitioner', None))
 
-  def on_update_record(self, session, record):
+  def on_send_record(self, session, record):
     questions = self.get('questions', None)
     if questions != None:
       questions = map(lambda x: x.strip('0123456789()').strip(), questions.split('\n'))
@@ -187,8 +200,8 @@ class VoteItem(AlchemyItem):
   opinions_joined = scrapy.Field()
 
   Model = Vote
-  update_fields = frozenset([])
-  exclude_model_fields = frozenset(['justice_oyez_id', 'opinion_written', 'opinions_joined', 'case_oyez_id'])
+  update_fields = frozenset(['vote'])
+  exclude_model_fields = frozenset(['justice_oyez_id', 'opinion_written', 'opinions_joined', 'case_oyez_id', 'opinion_kind'])
   search_fields = frozenset(['justice_oyez_id', 'case_oyez_id'])
   
   def clean(self):
@@ -198,40 +211,29 @@ class VoteItem(AlchemyItem):
     record.case_id = Case.search_by_oyez_id(session, self['case_oyez_id']).id
     record.justice_id = Justice.search_by_oyez_id(session, self['justice_oyez_id']).id
     
-  def on_update_record(self, session, record):
+  def on_send_record(self, session, record):
     if self['opinion_written'] != 'none':
       opinion = Opinion.search_by_author_vote(session, record.case_id, record.justice_id)
-      if self['opinion_written'] in ['majority', 'plurality', 'per curiam']:
-        opinion_kind = u'majority'
-      elif self['opinion_written'] == 'dissent':
-        opinion_kind = u'dissent'
-      elif self['opinion_written'] in ['concurrence', 'special concurrence']:
-        opinion_kind = u'concurrence'
-      else:
-        opinion_kind = None
+      
       if opinion == None:
-        opinion = Opinion(case_id = record.case_id, kind=opinion_kind, opinion_type=self['opinion_written'])
+        opinion = Opinion(case_id = record.case_id, kind=self['opinion_written'])
         ow = OpinionWritten(opinion=opinion, justice=record.justice)
         session.add(opinion)
         session.add(ow)
       else:
-        opinion.kind = opinion_kind
-        opinion.opinion_type = self['opinion_written']
-    justices_joined = self.get('opinions_joined', None)
-    if justices_joined == None:
-      justices_joined = []
+        opinion.kind = self['opinion_written']
+
+    justices_joined = self.get('opinions_joined', [])
     for justice_joined in justices_joined:
       justice_joined = Justice.search_by_oyez_id(session, justice_joined)
       j_opinion = Opinion.search_by_author_vote(session, record.case_id, justice_joined.id)
       if j_opinion == None:
         j_opinion = Opinion(case_id = record.case_id)
         session.add(j_opinion)
-        ow = OpinionWritten(opinion=j_opinion, justice = justice_joined)
+        ow = OpinionWritten(opinion=j_opinion, justice= justice_joined)
         session.add(ow)
-        oj = OpinionJoined(opinion=j_opinion, justice = record.justice)
-        session.add(oj)
-      else:
-        j_opinion.joiners.append(record.justice)
+      oj = OpinionJoined(opinion=j_opinion, justice = record.justice)
+      session.add(oj)
 
 
 class VoteLoader(JsonItemLoader):
@@ -272,10 +274,7 @@ class AdvocateItem(AlchemyItem):
     else:
       pass
     
-  def on_add_record(self, session, record):
-    pass
-    
-  def on_update_record(self, session, record):
+  def on_send_record(self, session, record):
     case = Case.search_by_oyez_id(session, self['case_oyez_id'])
     advocacy = Advocacy.search_for_scraped(session, case.id, self['oyez_id'])
     if advocacy == None:
@@ -308,6 +307,19 @@ class ArgumentItem(scrapy.Item):
   case_oyez_id = scrapy.Field()
   date = scrapy.Field()
   oyez_id = scrapy.Field()
+
+  date = Column(Date)
+  oyez_id = Column(Integer, index=True)
+  case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
+
+  Model = Argument
+  update_fields = frozenset(['date'])
+  exclude_model_fields = frozenset(['case_oyez_id '])
+  search_fields = frozenset(['oyez_id'])
+    
+  def on_add_record(self, session, record):
+    case = Case.search_by_oyez_id(session, self['case_oyez_id'])
+    record.case = case
 
 class ArgumentLoader(JsonItemLoader):
   default_item_class = ArgumentItem

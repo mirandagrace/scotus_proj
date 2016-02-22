@@ -91,7 +91,6 @@ class Opinion(Base):
   __tablename__ = 'opinions'
   
   kind = Column(Unicode(20)) # oyez casetext
-  opinion_type = Column(Unicode(20))
   text = Column(UnicodeText) # casetext
   
   justices_associated = relationship('OpinionAssociation', back_populates='opinion', cascade="all, delete-orphan")
@@ -105,8 +104,6 @@ class Opinion(Base):
   
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
   case = relationship('Case', back_populates='opinions')
-  
-  __mapper_args__ = {'polymorphic_on': kind}
 
   @classmethod
   def search_by_author_vote(cls, session, case_id, author_id):
@@ -115,15 +112,6 @@ class Opinion(Base):
                                       OpinionWritten.justice_id == bindparam('justice_id'))
     result = baked_query(session).params(justice_id=author_id, case_id=case_id).one_or_none()
     return result
-  
-class Dissent(Opinion):
-  __mapper_args__ = {'polymorphic_identity': u'dissent'}
-  
-class Judgement(Opinion):
-  __mapper_args__ = {'polymorphic_identity': u'judgement'}
-  
-class Concurrence(Opinion):
-  __mapper_args__ = {'polymorphic_identity': u'concurrence'}
   
 # dissent
 # holding:

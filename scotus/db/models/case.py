@@ -92,9 +92,6 @@ class Case(Base):
   questions = relationship('Question', back_populates='case')
   
   opinions = relationship('Opinion', back_populates='case')
-  judgement = relationship('Judgement', back_populates='case', uselist=False)
-  dissents = relationship('Dissent', back_populates='case')
-  concurrences = relationship('Concurrence', back_populates='case')
 
   arguments = relationship('Argument', back_populates='case')
   case_advocacies = relationship('Advocacy', back_populates='case')

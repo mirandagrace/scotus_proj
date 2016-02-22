@@ -15,9 +15,6 @@ NEWSPIDER_MODULE = 'scotus.spiders'
 CONCURRENT_REQUESTS = 4
 DOWNLOAD_DELAY = 1
 
-ITEM_PIPELINES = {
-    'scotus.pipelines.OyezPipeline': 800,
-}
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.103 Safari/537.36'

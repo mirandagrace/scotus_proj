@@ -12,12 +12,6 @@ class DB:
     self.Session = sessionmaker(bind=self.engine)
     return
     
-  def apply(self, transactions):
-    with self.session_scope() as session:
-      for transaction in transactions:
-        transaction(session)
-    return
-    
   def populate(self, build):
     session = self.Session()
     try:
@@ -40,19 +34,6 @@ class DB:
   def create_all(self):
     self.Base.metadata.create_all(self.engine)
     return
-    
-  @contextmanager
-  def session_scope(self):
-    """Provide a transactional scope around a series of operations."""
-    session = self.Session()
-    try:
-      yield session
-      session.commit()
-    except:
-      session.rollback()
-      raise
-    finally:
-      session.close()
       
 
     
