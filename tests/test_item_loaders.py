@@ -108,12 +108,12 @@ class TestItemLoaders:
   def test_advocate_loader(self):
     item_1 = {
       'case_oyez_id': 56149,
-      'description': "Deputy Solicitor General, for the United States as amicus curiae for the respondents",
+      'description': "for the petitioners on Question 1",
       'role': "amicus - us",
-      'name': "Edwin S. Kneedler",
-      'oyez_id': 22617
+      'name': "Donald B. Verrilli, Jr.",
+      'oyez_id': 21656
     }
-    self.check_load_advocate_data('tests/pages/obergefell_advocate_kneedler.json', item_1)
+    self.check_load_advocate_data('tests/pages/obergefell_advocate_verilli.json', item_1)
 
   def test_advocate_load_speaking(self):
     item_1 = {
@@ -134,7 +134,7 @@ class TestItemLoaders:
   def test_section_loader(self):
     item_1 = {
       'argument_oyez_id': 13186,
-      'section_number': 0,
+      'number': 0,
       'advocate_owner_id': 19936
     }
     self.check_load_section_data('tests/pages/oregon_section.json', item_1)

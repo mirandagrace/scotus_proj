@@ -118,7 +118,7 @@ class OyezSpider(scrapy.Spider):
     loader = AdvocateLoader(json_response)
     loader.add_json('gender', 'name', self.gender_processor)
     advocate = loader.load_advocate_data(response.meta.get('case_id', None))
-    advocate.send()
+    advocate.send(self.session)
     return 
 
 
@@ -145,7 +145,8 @@ class OyezSpider(scrapy.Spider):
       sections = []
     for section_number, section_json in enumerate(sections):
       section_loader = SectionLoader(section_json)
-      section_loader.load_section_data(argument_oyez_id, section_number)
+      section_item = section_loader.load_section_data(argument_oyez_id, section_number)
+      section_item.send(self.session)
 
       # parse turns
       turns = jmespath.search('turns', section_json)
@@ -157,13 +158,13 @@ class OyezSpider(scrapy.Spider):
           advocate_id = turn['advocate_oyez_id']
           if advocate_id not in advocate_ids_seen: # if we haven't seen the advocate before
             advocate = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id) # load the advocate data
-            results.append(advocate)
+            advocate.send(self.session)
             advocate_ids_seen.add(advocate['oyez_id']) # update the seen set
           else:
             pass
           if section == None: # if we haven't assigned a primary advocate to the section yet
             section = section_loader.load_advocate_owner(advocate_id)
-            results.append(section)
+            section.send()
           else:
             pass
         else:

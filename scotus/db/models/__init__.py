@@ -1,4 +1,4 @@
-from base import BuildStatus
+from base import BuildStatus, OyezIdMixin
 from case import Case, Question, Citation
 from justice import Justice, Opinion, Vote, OpinionWritten, OpinionAssociation, OpinionJoined
 from party import Party, Petitioner, Respondent

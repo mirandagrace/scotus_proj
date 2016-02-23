@@ -1,0 +1,63 @@
+{
+  "member": {
+    "ID": 15139,
+    "name": "Stephen G. Breyer",
+    "href": "https:\/\/api.oyez.org\/people\/stephen_g_breyer",
+    "view_count": 62,
+    "last_name": "Breyer",
+    "roles": [
+      {
+        "id": 2785,
+        "type": "scotus_justice",
+        "date_start": 775890000,
+        "date_end": 0,
+        "appointing_president": "Bill Clinton",
+        "role_title": "Associate Justice of the Supreme Court of the United States",
+        "institution_name": "Supreme Court of the United States",
+        "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2785"
+      }
+    ],
+    "thumbnail": {
+      "id": 32682,
+      "mime": "image\/png",
+      "size": 49908,
+      "href": "https:\/\/api.oyez.org\/sites\/default\/files\/stephen_g_breyer_0.png"
+    },
+    "length_of_service": 7777,
+    "identifier": "stephen_g_breyer"
+  },
+  "vote": "majority",
+  "opinion_type": "none",
+  "joining": [
+    {
+      "ID": 15084,
+      "name": "Ruth Bader Ginsburg",
+      "href": "https:\/\/api.oyez.org\/people\/ruth_bader_ginsburg",
+      "view_count": 79,
+      "last_name": "Ginsburg",
+      "roles": [
+        {
+          "id": 2728,
+          "type": "scotus_justice",
+          "date_start": 744958800,
+          "date_end": 0,
+          "appointing_president": "Bill Clinton",
+          "role_title": "Associate Justice of the Supreme Court of the United States",
+          "institution_name": "Supreme Court of the United States",
+          "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2728"
+        }
+      ],
+      "thumbnail": {
+        "id": 32681,
+        "mime": "image\/png",
+        "size": 45030,
+        "href": "https:\/\/api.oyez.org\/sites\/default\/files\/ruth_bader_ginsburg_1_0.png"
+      },
+      "length_of_service": 8135,
+      "identifier": "ruth_bader_ginsburg"
+    }
+  ],
+  "seniority": 6,
+  "ideology": -1.2,
+  "href": "https:\/\/api.oyez.org\/decision_vote\/decision_vote\/133806"
+}

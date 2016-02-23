@@ -1,0 +1,708 @@
+{
+        "start": 1655.11,
+        "stop": 2043.6,
+        "byte_start": 6649387,
+        "byte_stop": 8203360,
+        "turns": [
+          {
+            "start": 1655.11,
+            "stop": 1664.81,
+            "byte_start": 6649387,
+            "byte_stop": 6688258,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1655.11,
+                "stop": 1656.48,
+                "byte_start": 6649387,
+                "byte_stop": 6654925,
+                "text": "I will."
+              },
+              {
+                "start": 1656.48,
+                "stop": 1664.81,
+                "byte_start": 6654925,
+                "byte_stop": 6688258,
+                "text": "Thank you, Mr. Chief Justice. Actually, Mr. Chief Justice, if the Court is ready."
+              }
+            ]
+          },
+          {
+            "start": 1664.81,
+            "stop": 1667.29,
+            "byte_start": 6688258,
+            "byte_stop": 6698080,
+            "speaker": {
+              "ID": 15086,
+              "name": "John G. Roberts, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/john_g_roberts_jr",
+              "view_count": 83,
+              "last_name": "Roberts",
+              "roles": [
+                {
+                  "id": 2730,
+                  "type": "scotus_justice",
+                  "date_start": 1127970000,
+                  "date_end": 0,
+                  "appointing_president": "George W. Bush",
+                  "role_title": "Chief Justice of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2730"
+                }
+              ],
+              "thumbnail": {
+                "id": 32683,
+                "mime": "image\/png",
+                "size": 52305,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/john_g_roberts_jr_0.png"
+              },
+              "length_of_service": 3702,
+              "identifier": "john_g_roberts_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1664.81,
+                "stop": 1667.29,
+                "byte_start": 6688258,
+                "byte_stop": 6698080,
+                "text": "Well, we\u0027re ready. Okay."
+              }
+            ]
+          },
+          {
+            "start": 1667.29,
+            "stop": 1676.959,
+            "byte_start": 6698080,
+            "byte_stop": 6736845,
+            "speaker": {
+              "ID": 15049,
+              "name": "Antonin Scalia",
+              "href": "https:\/\/api.oyez.org\/people\/antonin_scalia",
+              "view_count": 79,
+              "last_name": "Scalia",
+              "roles": [
+                {
+                  "id": 2693,
+                  "type": "scotus_justice",
+                  "date_start": 528094800,
+                  "date_end": 1455343200,
+                  "appointing_president": "Ronald Reagan",
+                  "role_title": "Associate Justice of the Supreme Court of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2693"
+                }
+              ],
+              "thumbnail": {
+                "id": 32678,
+                "mime": "image\/png",
+                "size": 58944,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/antonin_scalia_0.png"
+              },
+              "length_of_service": 10732,
+              "identifier": "antonin_scalia"
+            },
+            "text_blocks": [
+              {
+                "start": 1667.29,
+                "stop": 1676.959,
+                "byte_start": 6698080,
+                "byte_stop": 6736845,
+                "text": "It was rather refreshing, actually. (Laughter.)"
+              }
+            ]
+          },
+          {
+            "start": 1676.959,
+            "stop": 1776.63,
+            "byte_start": 6736845,
+            "byte_stop": 7135474,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1676.959,
+                "stop": 1683.57,
+                "byte_start": 6736845,
+                "byte_stop": 6763281,
+                "text": "Mr. Chief Justice, and may it please the Court: The opportunity to marry is integral to human dignity."
+              },
+              {
+                "start": 1683.57,
+                "stop": 1688,
+                "byte_start": 6763281,
+                "byte_stop": 6780940,
+                "text": "Excluding gay and lesbian couples from marriage demeans the dignity of these couples."
+              },
+              {
+                "start": 1688,
+                "stop": 1708.04,
+                "byte_start": 6780940,
+                "byte_stop": 6861084,
+                "text": "It demeans their children, and it denies the -- both the couples and their children the stabilizing structure that marriage affords. Now, the Respondents\u0027 principal argument, and what we\u0027ve been discussing this morning so far, is whether this issue of -- whether this discrimination should persist, is something that should be left to the political process or whether it should be something decided by the Court."
+              },
+              {
+                "start": 1708.04,
+                "stop": 1731.61,
+                "byte_start": 6861084,
+                "byte_stop": 6955438,
+                "text": "And I\u0027d like to make three points about that, if I could. First, the -- I think it\u0027s important to understand that if this Court concludes that this issue should be left to the political process, what the Court will be saying is that the demeaning, second-class status that gay and lesbian couples now inhabit in -- in States that do not provide for marriage is consistent with the equal protection of the laws."
+              },
+              {
+                "start": 1731.61,
+                "stop": 1733.11,
+                "byte_start": 6955438,
+                "byte_stop": 6961394,
+                "text": "That is not a wait-and-see."
+              },
+              {
+                "start": 1733.11,
+                "stop": 1759.505,
+                "byte_start": 6961394,
+                "byte_stop": 7067033,
+                "text": "That is a validation. And second, to the extent that the thought is that this can be left to the political process because this issue will take care of itself over time, because attitudes are changing, what I respectfully submit to the Court is that although no one can see the future perfectly, of course, that it seems much more likely to me that the outcome that we\u0027re going to end up with is something that will approximate the nation as a house divided that we had with de jure racial segregation."
+              },
+              {
+                "start": 1759.505,
+                "stop": 1776.63,
+                "byte_start": 7067033,
+                "byte_stop": 7135474,
+                "text": "You may have many States, perhaps most States, in which gay couples can live with equal dignity and status, but you will have a minority of States in which gay couples will be relegated to demeaning, second-class status, and I don\u0027t know why we would want to repeat that history. And third --"
+              }
+            ]
+          },
+          {
+            "start": 1776.63,
+            "stop": 1778.545,
+            "byte_start": 7135474,
+            "byte_stop": 7143102,
+            "speaker": {
+              "ID": 15086,
+              "name": "John G. Roberts, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/john_g_roberts_jr",
+              "view_count": 83,
+              "last_name": "Roberts",
+              "roles": [
+                {
+                  "id": 2730,
+                  "type": "scotus_justice",
+                  "date_start": 1127970000,
+                  "date_end": 0,
+                  "appointing_president": "George W. Bush",
+                  "role_title": "Chief Justice of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2730"
+                }
+              ],
+              "thumbnail": {
+                "id": 32683,
+                "mime": "image\/png",
+                "size": 52305,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/john_g_roberts_jr_0.png"
+              },
+              "length_of_service": 3702,
+              "identifier": "john_g_roberts_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1776.63,
+                "stop": 1777.7,
+                "byte_start": 7135474,
+                "byte_stop": 7139758,
+                "text": "But, General, I -- I\u0027m sorry."
+              },
+              {
+                "start": 1777.7,
+                "stop": 1778.545,
+                "byte_start": 7139758,
+                "byte_stop": 7143102,
+                "text": "Go ahead."
+              }
+            ]
+          },
+          {
+            "start": 1778.545,
+            "stop": 1807.37,
+            "byte_start": 7143102,
+            "byte_stop": 7258458,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1778.545,
+                "stop": 1807.37,
+                "byte_start": 7143102,
+                "byte_stop": 7258458,
+                "text": "And third, I want to expand on what Ms. Bonauto said, that -- that -- and I think you, Mr. Chief Justice, you did recognize this, that the decision to leave this to the political process is going to impose enormous costs that this Court thought were costs of constitutional stature in Windsor. Thousands and thousands of people are going to live out their lives and go to their deaths without their States ever recognizing the equal dignity of their relationships."
+              }
+            ]
+          },
+          {
+            "start": 1807.37,
+            "stop": 1816.49,
+            "byte_start": 7258458,
+            "byte_stop": 7294925,
+            "speaker": {
+              "ID": 15113,
+              "name": "Anthony M. Kennedy",
+              "href": "https:\/\/api.oyez.org\/people\/anthony_m_kennedy",
+              "view_count": 66,
+              "last_name": "Kennedy",
+              "roles": [
+                {
+                  "id": 2757,
+                  "type": "scotus_justice",
+                  "date_start": 572162400,
+                  "date_end": 0,
+                  "appointing_president": "Ronald Reagan",
+                  "role_title": "Associate Justice of the Supreme Court of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2757"
+                }
+              ],
+              "thumbnail": {
+                "id": 32679,
+                "mime": "image\/png",
+                "size": 47100,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/anthony_kennedy_1_3.png"
+              },
+              "length_of_service": 10147,
+              "identifier": "anthony_m_kennedy"
+            },
+            "text_blocks": [
+              {
+                "start": 1807.37,
+                "stop": 1816.49,
+                "byte_start": 7258458,
+                "byte_stop": 7294925,
+                "text": "Well, you could have said the same thing 10 years ago or so when we had Lawrence. Haven\u0027t we learned a tremendous amount since -- well, since Lawrence, just in the last 10 years?"
+              }
+            ]
+          },
+          {
+            "start": 1816.49,
+            "stop": 1869.6,
+            "byte_start": 7294925,
+            "byte_stop": 7507353,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1816.49,
+                "stop": 1816.84,
+                "byte_start": 7294925,
+                "byte_stop": 7296284,
+                "text": "Yes."
+              },
+              {
+                "start": 1816.84,
+                "stop": 1822.3,
+                "byte_start": 7296284,
+                "byte_stop": 7318122,
+                "text": "And, Your Honor, I actually think that\u0027s quite a critical point that goes to the questions that Your Honor was asking earlier."
+              },
+              {
+                "start": 1822.3,
+                "stop": 1827.27,
+                "byte_start": 7318122,
+                "byte_stop": 7338080,
+                "text": "I do think Lawrence was an important catalyst that has brought us to where we are today."
+              },
+              {
+                "start": 1827.27,
+                "stop": 1845.12,
+                "byte_start": 7338080,
+                "byte_stop": 7409446,
+                "text": "And I think what Lawrence did was provide an assurance that gay and lesbian couples could live openly in society as free people and start families and raise families and participate fully in their communities without fear. And there are -- two things flow from that, I think."
+              },
+              {
+                "start": 1845.12,
+                "stop": 1857.875,
+                "byte_start": 7409446,
+                "byte_stop": 7460437,
+                "text": "One is that has brought us to the point where we understand now, in a way even that we did not fully understand in Lawrence, that gay and lesbian people and gay and lesbian couples are full and equal members of the community."
+              },
+              {
+                "start": 1857.875,
+                "stop": 1869.6,
+                "byte_start": 7460437,
+                "byte_stop": 7507353,
+                "text": "And what we once thought of as necessary and proper reasons for ostracizing and marginalizing gay people, we now understand do not justify that kind of oppression."
+              }
+            ]
+          },
+          {
+            "start": 1869.6,
+            "stop": 1885.225,
+            "byte_start": 7507353,
+            "byte_stop": 7569838,
+            "speaker": {
+              "ID": 15086,
+              "name": "John G. Roberts, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/john_g_roberts_jr",
+              "view_count": 83,
+              "last_name": "Roberts",
+              "roles": [
+                {
+                  "id": 2730,
+                  "type": "scotus_justice",
+                  "date_start": 1127970000,
+                  "date_end": 0,
+                  "appointing_president": "George W. Bush",
+                  "role_title": "Chief Justice of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2730"
+                }
+              ],
+              "thumbnail": {
+                "id": 32683,
+                "mime": "image\/png",
+                "size": 52305,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/john_g_roberts_jr_0.png"
+              },
+              "length_of_service": 3702,
+              "identifier": "john_g_roberts_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1869.6,
+                "stop": 1876.215,
+                "byte_start": 7507353,
+                "byte_stop": 7533789,
+                "text": "The difference, of course, is Lawrence, the whole argument is the State cannot intrude on that personal relationship."
+              },
+              {
+                "start": 1876.215,
+                "stop": 1881.79,
+                "byte_start": 7533789,
+                "byte_stop": 7556150,
+                "text": "This, it seems to me, is -- is different in that what the argument is is the State must sanction."
+              },
+              {
+                "start": 1881.79,
+                "stop": 1884.045,
+                "byte_start": 7556150,
+                "byte_stop": 7565136,
+                "text": "It must approve that relationship."
+              },
+              {
+                "start": 1884.045,
+                "stop": 1885.225,
+                "byte_start": 7565136,
+                "byte_stop": 7569838,
+                "text": "They\u0027re two different questions."
+              }
+            ]
+          },
+          {
+            "start": 1885.225,
+            "stop": 1966.335,
+            "byte_start": 7569838,
+            "byte_stop": 7894279,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1885.225,
+                "stop": 1915.675,
+                "byte_start": 7569838,
+                "byte_stop": 7691673,
+                "text": "It is different, I agree. And I -- and it leads to the second thing I think that the -- that the Lawrence catalyzed for our society, was it put gay and lesbian couples, gay and lesbian people, in a position for the first time in our history to be able to lay claim to the abiding promise of the Fourteenth Amendment in a way that was just impossible when they were marginalized and ostracized. And you\u0027re right, Mr. Chief Justice, this is about equal participation, participation on equal terms in a State-conferred -- a State-conferred status, a State institution."
+              },
+              {
+                "start": 1915.675,
+                "stop": 1938.015,
+                "byte_start": 7691673,
+                "byte_stop": 7781012,
+                "text": "That is different than Lawrence, but I do think that what Lawrence has allowed us to see is that the justifications for excluding gay and lesbian couples from equal participation in this institution just hold up. And I do think -- and the Court has raised this question about whether what we are talking about here is a -- is a fundamental change in the nature of marriage."
+              },
+              {
+                "start": 1938.015,
+                "stop": 1951.64,
+                "byte_start": 7781012,
+                "byte_stop": 7835556,
+                "text": "And I think the answer to that question is that this case can be decided by thinking about marriage in exactly the way the States -- the Respondent States and other States define marriage now. And I think it\u0027s important to think about it this way."
+              },
+              {
+                "start": 1951.64,
+                "stop": 1966.335,
+                "byte_start": 7835556,
+                "byte_stop": 7894279,
+                "text": "Heterosexual couples can enter marriage, and they can have families through biological procreation. They can have families through assisted reproduction. They can have families through adoption, or they can not have families at all."
+              }
+            ]
+          },
+          {
+            "start": 1966.335,
+            "stop": 1967,
+            "byte_start": 7894279,
+            "byte_stop": 7896996,
+            "speaker": {
+              "ID": 15068,
+              "name": "Samuel A. Alito, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/samuel_alito_jr",
+              "view_count": 0,
+              "last_name": "Alito",
+              "roles": [
+                {
+                  "id": 2712,
+                  "type": "scotus_justice",
+                  "date_start": 1138687200,
+                  "date_end": 0,
+                  "appointing_president": "George W. Bush",
+                  "role_title": "Associate Justice of the Supreme Court of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2712"
+                }
+              ],
+              "thumbnail": {
+                "id": 32684,
+                "mime": "image\/png",
+                "size": 44799,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/samuel_a_alito_jr_1.png"
+              },
+              "length_of_service": 3531,
+              "identifier": "samuel_alito_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1966.335,
+                "stop": 1967,
+                "byte_start": 7894279,
+                "byte_stop": 7896996,
+                "text": "What do you think --"
+              }
+            ]
+          },
+          {
+            "start": 1967,
+            "stop": 1967.12,
+            "byte_start": 7896996,
+            "byte_stop": 7897414,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1967,
+                "stop": 1967.12,
+                "byte_start": 7896996,
+                "byte_stop": 7897414,
+                "text": "And I --"
+              }
+            ]
+          },
+          {
+            "start": 1967.12,
+            "stop": 1970.54,
+            "byte_start": 7897414,
+            "byte_stop": 7911102,
+            "speaker": {
+              "ID": 15068,
+              "name": "Samuel A. Alito, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/samuel_alito_jr",
+              "view_count": 0,
+              "last_name": "Alito",
+              "roles": [
+                {
+                  "id": 2712,
+                  "type": "scotus_justice",
+                  "date_start": 1138687200,
+                  "date_end": 0,
+                  "appointing_president": "George W. Bush",
+                  "role_title": "Associate Justice of the Supreme Court of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2712"
+                }
+              ],
+              "thumbnail": {
+                "id": 32684,
+                "mime": "image\/png",
+                "size": 44799,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/samuel_a_alito_jr_1.png"
+              },
+              "length_of_service": 3531,
+              "identifier": "samuel_alito_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1967.12,
+                "stop": 1970.54,
+                "byte_start": 7897414,
+                "byte_stop": 7911102,
+                "text": "-- are the essential elements of marriage as it exists today?"
+              }
+            ]
+          },
+          {
+            "start": 1970.54,
+            "stop": 2004.11,
+            "byte_start": 7911102,
+            "byte_stop": 8045371,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1970.54,
+                "stop": 1991.48,
+                "byte_start": 7911102,
+                "byte_stop": 7994903,
+                "text": "Well, I think the essential elements of marriage are the ones that are -- that -- the -- the obligations of mutual support and responsibility and the benefits surrounding marriage that State law provides to ensure that there is an enduring bond, that enduring bond that continues over time and lasts, hopefully, till death do us part, through the end of life."
+              },
+              {
+                "start": 1991.48,
+                "stop": 2004.11,
+                "byte_start": 7994903,
+                "byte_stop": 8045371,
+                "text": "And that -- and with -- and -- and, certainly, childrearing is bound up in that. But what I would suggest, Justice Alito, is the that way childbearing -- bearing is bound up in that is quite different than what my friends on the other side will say."
+              }
+            ]
+          },
+          {
+            "start": 2004.11,
+            "stop": 2043.6,
+            "byte_start": 8045371,
+            "byte_stop": 8203360,
+            "speaker": {
+              "ID": 15068,
+              "name": "Samuel A. Alito, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/samuel_alito_jr",
+              "view_count": 0,
+              "last_name": "Alito",
+              "roles": [
+                {
+                  "id": 2712,
+                  "type": "scotus_justice",
+                  "date_start": 1138687200,
+                  "date_end": 0,
+                  "appointing_president": "George W. Bush",
+                  "role_title": "Associate Justice of the Supreme Court of the United States",
+                  "institution_name": "Supreme Court of the United States",
+                  "href": "https:\/\/api.oyez.org\/preson_role\/scotus_justice\/2712"
+                }
+              ],
+              "thumbnail": {
+                "id": 32684,
+                "mime": "image\/png",
+                "size": 44799,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/samuel_a_alito_jr_1.png"
+              },
+              "length_of_service": 3531,
+              "identifier": "samuel_alito_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 2004.11,
+                "stop": 2006.99,
+                "byte_start": 8045371,
+                "byte_stop": 8056970,
+                "text": "Well, let\u0027s -- let\u0027s think about two groups of two people."
+              },
+              {
+                "start": 2006.99,
+                "stop": 2019.07,
+                "byte_start": 8056970,
+                "byte_stop": 8105244,
+                "text": "The first is the same-sex couple who have been together for 25 years, and they get married either as a result of a change in State law or as a result of a Court decision."
+              },
+              {
+                "start": 2019.07,
+                "stop": 2023.5,
+                "byte_start": 8105244,
+                "byte_stop": 8123007,
+                "text": "The second two people are unmarried siblings."
+              },
+              {
+                "start": 2023.5,
+                "stop": 2025.655,
+                "byte_start": 8123007,
+                "byte_stop": 8131575,
+                "text": "They\u0027ve lived together for 25 years."
+              },
+              {
+                "start": 2025.655,
+                "stop": 2030.85,
+                "byte_start": 8131575,
+                "byte_stop": 8152369,
+                "text": "Their financial relationship is the same as the -- the same-sex couple."
+              },
+              {
+                "start": 2030.85,
+                "stop": 2037.29,
+                "byte_start": 8152369,
+                "byte_stop": 8178178,
+                "text": "They share household expenses and household chores in the same way."
+              },
+              {
+                "start": 2037.29,
+                "stop": 2043.6,
+                "byte_start": 8178178,
+                "byte_stop": 8203360,
+                "text": "They care for each other in the same way. Is there any reason why the law should treat the two groups differently?"
+              }
+            ]
+          }
+        ]
+      }

@@ -1,0 +1,59 @@
+{
+            "start": 11.508,
+            "stop": 48.116,
+            "byte_start": 153966,
+            "byte_stop": 300356,
+            "speaker": {
+              "ID": 56070,
+              "name": "Scott A Keller",
+              "href": "https:\/\/api.oyez.org\/people\/scott_a_keller",
+              "view_count": 0,
+              "last_name": "Keller",
+              "roles": null,
+              "thumbnail": {
+                "id": 32795,
+                "mime": "image\/jpeg",
+                "size": 5270,
+                "href": "https:\/\/api.oyez.org\/sites\/default\/files\/Scott%20A%20Keller.jpg"
+              },
+              "length_of_service": 0,
+              "identifier": "scott_a_keller"
+            },
+            "text_blocks": [
+              {
+                "start": 11.508,
+                "stop": 16.351,
+                "byte_start": 153966,
+                "byte_stop": 173297,
+                "text": "Thank you, Mr. Chief Justice, and may it please the Court:"
+              },
+              {
+                "start": 16.351,
+                "stop": 34.499,
+                "byte_start": 173297,
+                "byte_stop": 245917,
+                "text": "The Fair Housing Act does not recognize disparate-impact claims, first, because its plain text doesn\u0027t use effects or results-based language, and when a statute prohibits actions taken because of race and it lacks effects-based language, the statute is limited to intentional discrimination."
+              },
+              {
+                "start": 34.499,
+                "stop": 39.857,
+                "byte_start": 245917,
+                "byte_stop": 267337,
+                "text": "And, second, the canon of constitutional avoidance compels this interpretation."
+              },
+              {
+                "start": 39.857,
+                "stop": 43.901,
+                "byte_start": 267337,
+                "byte_stop": 283533,
+                "text": "Most importantly, the Act doesn\u0027t use the phrase \u0022adversely affect\u0022."
+              },
+              {
+                "start": 43.901,
+                "stop": 48.116,
+                "byte_start": 283533,
+                "byte_stop": 300356,
+                "text": "Smith v. City of Jackson, recognized that this effects-based phrase--"
+              }
+            ]
+          }
