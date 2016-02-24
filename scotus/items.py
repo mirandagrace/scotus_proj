@@ -56,7 +56,7 @@ class AlchemyItem(scrapy.Item):
     pass
     
   def _add_args(self):
-    return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v}
+    return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v!=None}
     
   def _add_record(self, session):
     record = self.Model(**self._add_args())
@@ -68,7 +68,7 @@ class AlchemyItem(scrapy.Item):
     return self.Model.search_for_scraped(session, **self._search_args())
     
   def _search_args(self):
-    return {k:v for k,v in dict(self).items() if k in self.search_fields and v}
+    return {k:v for k,v in dict(self).items() if k in self.search_fields and v!=None}
     
   def send(self, session):
     self.clean()
@@ -345,7 +345,7 @@ class ArgumentLoader(JsonItemLoader):
 class SectionItem(AlchemyItem):
   argument_oyez_id = scrapy.Field()
   number = scrapy.Field()
-  advocate_owner_id = scrapy.Field()
+  advocate_oyez_id = scrapy.Field()
 
   Model = Section
   update_fields = frozenset([])
@@ -357,7 +357,8 @@ class SectionItem(AlchemyItem):
     record.argument = argument
 
   def on_send_record(self, session, record):
-    advocate_oyez_id = self.get('advocate_owner_id', None)
+    advocate_oyez_id = self.get('advocate_oyez_id', None)
+    print advocate_oyez_id
     if advocate_oyez_id:
       case = record.argument.case
       advocacy = Advocacy.search_for_scraped(session, case_id=case.id, advocate_oyez_id=advocate_oyez_id)
@@ -374,16 +375,28 @@ class SectionLoader(JsonItemLoader):
     return self.load_item()
 
   def load_advocate_owner(self, advocate_oyez_id):
-    self.add_value('advocate_owner_id', advocate_oyez_id)
+    self.add_value('advocate_oyez_id', advocate_oyez_id)
     return self.load_item()
 
-class TurnItem(scrapy.Item):
-  turn_number = scrapy.Field()
+class TurnItem(AlchemyItem):
+  number = scrapy.Field()
   section_number = scrapy.Field()
   argument_oyez_id = scrapy.Field()
   text = scrapy.Field()
-  start = scrapy.Field()
-  end = scrapy.Field()
+  time_start = scrapy.Field()
+  time_end = scrapy.Field()
+
+  Model = UnknownTurn
+  update_fields = frozenset([])
+  exclude_model_fields = frozenset(['section_number', 'argument_oyez_id'])
+  search_fields = frozenset(['number', 'section_number', 'argument_oyez_id'])
+
+  def set_section(self, session, record):
+    section = Section.search_for_scraped(session, argument_oyez_id=self['argument_oyez_id'], number=self['section_number'])
+    record.section = section
+    
+  def on_add_record(self, session, record):
+    self.set_section(session, record)
 
 class TurnLoader(JsonItemLoader):
   default_item_class = TurnItem
@@ -394,9 +407,9 @@ class TurnLoader(JsonItemLoader):
   def _load_base_data(self, argument_id, section_number, turn_number):
     self.add_value('argument_oyez_id', argument_id)
     self.add_value('section_number', section_number)
-    self.add_value('turn_number', turn_number)
-    self.add_json('start', 'start')
-    self.add_json('end', 'stop')
+    self.add_value('number', turn_number)
+    self.add_json('time_start', 'start')
+    self.add_json('time_end', 'stop')
     self.add_json('text', 'text_blocks[*].text')
     return
 
@@ -406,6 +419,14 @@ class TurnLoader(JsonItemLoader):
 
 class JusticeTurnItem(TurnItem):
   justice_oyez_id = scrapy.Field()
+
+  Model = JusticeTurn
+  exclude_model_fields = frozenset(['section_number', 'argument_oyez_id', 'justice_oyez_id'])
+
+  def on_add_record(self, session, record):
+    self.set_section(session, record)
+    justice = Justices.search_by_oyez_id(self['justice_oyez_id'])
+    record.justice = justice
 
 class JusticeTurnLoader(TurnLoader):
   default_item_class = JusticeTurnItem
@@ -417,6 +438,14 @@ class JusticeTurnLoader(TurnLoader):
 
 class AdvocateTurnItem(TurnItem):
   advocate_oyez_id = scrapy.Field()
+
+  Model = AdvocateTurn
+  exclude_model_fields = frozenset(['section_number', 'argument_oyez_id', 'advocate_oyez_id'])
+
+  def on_add_record(self, session, record):
+    self.set_section(session, record)
+    advocate = Advocate.search_by_oyez_id(self['advocate_oyez_id'])
+    record.advocate = advocate
 
 class AdvocateTurnLoader(TurnLoader):
   default_item_class = AdvocateTurnItem

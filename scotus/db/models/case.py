@@ -93,8 +93,8 @@ class Case(Base, OyezIdMixin):
   opinions = relationship('Opinion', back_populates='case')
 
   arguments = relationship('Argument', back_populates='case')
-  case_advocacies = relationship('Advocacy', back_populates='case')
-  advocates = association_proxy('case_advocacies', 'advocate')
+  advocacies = relationship('Advocacy', back_populates='case')
+  advocates = association_proxy('advocacies', 'advocate')
   
   @property
   def winner(self):

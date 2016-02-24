@@ -10,8 +10,11 @@ class Advocate(Base, OyezIdMixin):
   __tablename__ = 'advocates'
   name = Column(Unicode(150)) # oyez
   gender = Column(Unicode(1)) # calculated
-  case_advocacies = relationship('Advocacy', back_populates='advocate')
-  cases = association_proxy('case_advocacies', 'case')
+  advocacies = relationship('Advocacy', back_populates='advocate')
+  cases = association_proxy('advocacies', 'case')
+
+  def __repr__(self): #pragma: no cover
+    return '<Advocate(name={})>'.format(self.name)
 
   @classmethod
   def search_by_oyez_id(cls, session, oyez_id=None):
@@ -33,17 +36,20 @@ class Advocacy(Base):
   role = Column(Unicode(50))
 
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
-  case = relationship('Case', back_populates='case_advocacies')
+  case = relationship('Case', back_populates='advocacies')
 
   advocate_id = Column(Integer, ForeignKey('advocates.id'), nullable=False)
-  advocate = relationship('Advocate', back_populates='case_advocacies')
+  advocate = relationship('Advocate', back_populates='advocacies')
+  
+  def __repr__(self): #pragma: no cover
+    return '<Advocacy({}, {}, role={})>'.format(self.case, self.advocate, self.role)
 
   @classmethod
   def search_for_scraped(cls, session, case_id, advocate_oyez_id):
     baked_query = bakery(lambda session: session.query(cls).join(Advocate, cls.advocate))
     baked_query += lambda q: q.filter(cls.case_id == bindparam('case_id'))
     baked_query += lambda q: q.filter(Advocate.oyez_id == bindparam('advocate_oyez_id'))
-    result = baked_query(session).params(case_id=case_id, advocate_oyez_id='advocate_oyez_id').one_or_none()
+    result = baked_query(session).params(case_id=case_id, advocate_oyez_id=advocate_oyez_id).one_or_none()
     return result
 
 class Argument(Base, OyezIdMixin):
@@ -54,6 +60,9 @@ class Argument(Base, OyezIdMixin):
   case = relationship('Case', back_populates='arguments')
 
   sections = relationship('Section', back_populates='argument')
+  
+  def __repr__(self): #pragma: no cover
+    return '<Argument({}, date={})>'.format(self.case, self.date)
 
   @classmethod
   def search_by_oyez_id(cls, session, oyez_id=None):
@@ -115,21 +124,33 @@ class Turn(Base):
   def speaker(self):
     return None
 
+  @classmethod
+  def search_for_scraped(cls, session, argument_oyez_id=None, section_number=None, number=None):
+    baked_query = bakery(lambda session: session.query(cls).join(Section, cls.section).join(Argument, Section.argument))
+    baked_query += lambda q: q.filter(Argument.oyez_id == bindparam('argument_oyez_id'))
+    baked_query += lambda q: q.filter(Section.number == bindparam('section_number'))
+    baked_query += lambda q: q.filter(cls.number == bindparam('number'))
+    result = baked_query(session).params(argument_oyez_id=argument_oyez_id, section_number=section_number, number=number).one_or_none()
+    return result
+    
+class UnknownTurn(Turn):
+  __mapper_args__ = {'polymorphic_identity': u'unknown'}
+
 class AdvocateTurn(Turn):
   @declared_attr
   def advocate_id(cls):
-    return Turn.__table__.c.get('justice_id', Column(Integer, ForeignKey('advocates.id'), nullable=False))
+    return Turn.__table__.c.get('justice_id', Column(Integer, ForeignKey('advocates.id')))
 
   @property
   def speaker(self):
     return self.advocate
 
-  __mapper_args__ = {'polymorphic_identity': 'advocate'}
+  __mapper_args__ = {'polymorphic_identity': u'advocate'}
 
 class JusticeTurn(Turn):
   @declared_attr
   def justice_id(cls):
-    return Turn.__table__.c.get('justice_id', Column(Integer, ForeignKey('justices.id'), nullable=False))
+    return Turn.__table__.c.get('justice_id', Column(Integer, ForeignKey('justices.id')))
 
   justice = relationship('Justice')
 
@@ -137,6 +158,6 @@ class JusticeTurn(Turn):
   def speaker(self):
     return self.justice
 
-  __mapper_args__ = {'polymorphic_identity': 'justice'}
+  __mapper_args__ = {'polymorphic_identity': u'justice'}
 
 

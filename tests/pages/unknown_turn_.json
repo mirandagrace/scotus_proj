@@ -1,0 +1,31 @@
+{
+            "start": 11.565,
+            "stop": 52.19,
+            "byte_start": 75203,
+            "byte_stop": 237685,
+            "speaker": {
+              "ID": 56184,
+              "name": "Mary L. Bonauto",
+              "href": "https:\/\/api.oyez.org\/people\/mary_l_bonauto",
+              "view_count": 0,
+              "last_name": "Bonauto",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "mary_l_bonauto"
+            },
+            "text_blocks": [
+              {
+                "start": 11.565,
+                "stop": 26.32,
+                "byte_start": 75203,
+                "byte_stop": 134240,
+                "text": "Mr. Chief Justice, and may it please the Court: The intimate and committed relationships of same-sex couples, just like those of heterosexual couples, provide mutual support and are the foundation of family life in our society."
+              },
+              {
+                "start": 26.32,
+                "stop": 52.19,
+                "byte_start": 134240,
+                "byte_stop": 237685,
+                "text": "If a legal commitment, responsibility and protection that is marriage is off limits to gay people as a class, the stain of unworthiness that follows on individuals and families contravenes the basic constitutional commitment to equal dignity. Indeed, the abiding purpose of the Fourteenth Amendment is to preclude relegating classes of persons to second-tier status."
+              }

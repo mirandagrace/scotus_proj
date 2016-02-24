@@ -1,5 +1,5 @@
 from utilities import *
-from scotus.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader
+from scotus.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader, TurnLoader
 from scotus.settings import TEST_DB, SCDB_TEST_FILE
 from scotus.add import add_justices, add_scdb_votes
 from scotus.build import Build
@@ -56,6 +56,18 @@ def send_section(session, section_file, argument_id, number):
   section_item = SectionLoader(section_json).load_section_data(argument_id, number)
   section_item.send(session)
   return section_item
+  
+def send_section_advocate(session, section_file, section_item, advocate_id):
+  section_json = load_json(section_file)
+  section_item = SectionLoader(section_json, item=section_item).load_advocate_owner(advocate_id)
+  section_item.send(session)
+  return section_item
+
+def send_turn(session, turn_file, argument_id, section_number, number):
+  turn_json = load_json(turn_file)
+  turn_item = TurnLoader(turn_json).load_turn_data(argument_id, section_number, number)
+  turn_item.send(session)
+  return turn_item
 
 class DBReset(object):
   db = DB(TEST_DB)
@@ -149,6 +161,10 @@ class DBReset(object):
   @classmethod
   def advocate_whalen(self):
     return send_advocate(self.session, 'tests/pages/advocate_whalen.json', 56149)
+    
+  @classmethod
+  def advocate_bursch(self):
+    return send_advocate(self.session, 'tests/pages/advocate_bursch.json', 56149)
   
   @classmethod
   def advocate_from_speaking(self):
@@ -171,6 +187,23 @@ class DBReset(object):
   @classmethod
   def new_section(self):
     return send_section(self.session, 'tests/pages/obergefell_section2.json', 23751, 2)
+  
+  @classmethod
+  def new_section2(self):
+    return send_section(self.session, 'tests/pages/obergefell_section3.json', 23751, 3)
+  
+  @classmethod 
+  def section_update_advocate(self, item):
+    return send_section_advocate(self.session, 'tests/pages/obergefell_section3.json', item, 29018)
+
+  ##### TURN FUNCTIONS #####
+  @classmethod
+  def unknown_turn(self):
+    return send_turn(self.session, 'tests/pages/unknown_turn.json', 23751, 2, 0)
+
+  @classmethod
+  def advocate_turn(self):
+    return send_turn(self.session, 'tests/pages/adv_turn.json', 23751, 2, 1)
   
   @classmethod
   def teardown_class(cls):
@@ -257,7 +290,7 @@ class TestAdvocateSender(DBReset):
     advocate=Advocate.search_for_scraped(self.session, 56185)
     assert_t(advocate)
     assert_t(len(advocate.cases)==1)
-    advocacy = advocate.case_advocacies[0]
+    advocacy = advocate.advocacies[0]
     assert_t(advocacy.side=='respondent')
   
   def test_new_advocate_from_speaking(self):
@@ -282,9 +315,8 @@ class TestAdvocateSender(DBReset):
     advocate=Advocate.search_for_scraped(self.session, 29018)
     assert_t(advocate)
     assert_t(len(advocate.cases)==1)
-    advocacy = advocate.case_advocacies[0]
+    advocacy = advocate.advocacies[0]
     assert_t(advocacy.side=='respondent')
-    
     
 class TestTranscriptSenders(DBReset):
   @classmethod
@@ -303,12 +335,43 @@ class TestSectionSenders(DBReset):
     cls.session = cls.build()
     cls.new_case()
     cls.new_argument()
+    cls.advocate_bursch()
 
   def test_new_section(self):
     section_item = self.new_section()
     section = Section.search_for_scraped(self.session, section_item['argument_oyez_id'], section_item['number'])
     assert_t(section)
 
+  def test_section_advocate_update(self):
+    section_item = self.new_section2()
+    self.section_update_advocate(section_item)
+    section = Section.search_for_scraped(self.session, section_item['argument_oyez_id'], section_item['number'])
+    assert_t(section)
+    case = section.argument.case
+    advocacy = Advocacy.search_for_scraped(self.session, case_id=case.id, advocate_oyez_id=section_item['advocate_oyez_id'])
+    assert_t(section.advocacy.side=='respondent')
+
+class TestAdvocateSender(DBReset):
+  @classmethod
+  def setup_class(cls):
+    cls.session = cls.build()
+    cls.new_case()
+    cls.new_argument()
+    cls.advocate_verrilli()
+    cls.new_section()
+
+  def test_unknown_turn(self):
+    turn_item = self.unknown_turn()
+    turns = self.session.query(UnknownTurn).all()
+    t = turns[0]
+    assert_eq(t.kind, u'unknown')
+
+  def test_advocate_turn(self):
+    turn_item = self.advocate_turn()
+    turn= Turn.search_for_scraped(23751, 2, 1)
+    assert_eq(turn.kind, u'advocate')
+    assert_eq(turn.advocate.oyez_id, 21656)
+    
 
 
 
