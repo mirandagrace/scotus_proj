@@ -3,7 +3,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableComposite
 from sqlalchemy.orm import relationship, composite
 from sqlalchemy import bindparam
-from .base import Base, bakery
+from .base import Base, bakery, OyezIdMixin
 from sqlalchemy import or_, and_
 
 class Citation(MutableComposite):
@@ -24,7 +24,7 @@ class Citation(MutableComposite):
     # alert all parents to the change
     self.changed()
 
-  def __repr__(self):
+  def __repr__(self): #pragma: no cover
     return "%r U.S. %r" % (self.volume, self.page)
 
   def __eq__(self, other):
@@ -36,12 +36,11 @@ class Citation(MutableComposite):
     return not self.__eq__(other)
 
 # class containing the information about the individual case
-class Case(Base):
+class Case(Base, OyezIdMixin):
   __tablename__ = 'cases'
   
   # Identification Variables
   scdb_id = Column(Unicode(20), index=True) # scdb
-  oyez_id = Column(Integer, index=True) # oyez
   volume = Column(Integer) # scdb oyez
   page = Column(Integer) # scdb oyez
   citation = composite(Citation, volume, page) # scdb
@@ -92,39 +91,29 @@ class Case(Base):
   questions = relationship('Question', back_populates='case')
   
   opinions = relationship('Opinion', back_populates='case')
-  judgement = relationship('Judgement', back_populates='case', uselist=False)
-  dissents = relationship('Dissent', back_populates='case')
-  concurrences = relationship('Concurrence', back_populates='case')
 
   arguments = relationship('Argument', back_populates='case')
-  case_advocacies = relationship('Advocacy', back_populates='case')
-  advocates = association_proxy('case_advocacies', 'advocate')
+  advocacies = relationship('Advocacy', back_populates='case')
+  advocates = association_proxy('advocacies', 'advocate')
   
   @property
   def winner(self):
     if self.winning_side == 'petitioner':
       return self.petitioner
-    elif self.winning_side == 'respondent': # pragma: no branch
+    elif self.winning_side == 'respondent': 
       return self.respondent
-    return None # pragma: no cover
+    return None
     
   @property
   def loser(self):
     if self.losing_side == 'petitioner':
       return self.petitioner
-    elif self.losing_side == 'respondent': # pragma: no branch
+    elif self.losing_side == 'respondent': 
       return self.respondent
-    return None # pragma: no cover
+    return None
     
-  def __repr__(self):
+  def __repr__(self): #pragma: no cover
     return '<Case(docket={}, name={})>'.format(self.docket, self.name)
-
-  @classmethod
-  def search_by_oyez_id(cls, session, oyez_id=None):
-    baked_query = bakery(lambda session: session.query(cls))
-    baked_query += lambda q: q.filter(cls.oyez_id == bindparam('oyez_id'))
-    result = baked_query(session).params(oyez_id=oyez_id).one_or_none()
-    return result
     
   @classmethod
   def search_for_scraped(cls, session, docket=None, volume=None, page=None):
@@ -134,6 +123,14 @@ class Case(Base):
                                                cls.page == bindparam('page'))))
     result = baked_query(session).params(docket=docket, volume=volume, page=page).one_or_none()
     return result
+
+  @classmethod
+  def search_by_oyez_id(cls, session, oyez_id=None):
+    baked_query = bakery(lambda session: session.query(cls))
+    baked_query += lambda q: q.filter(cls.oyez_id == bindparam('oyez_id'))
+    result = baked_query(session).params(oyez_id=oyez_id).one_or_none()
+    return result
+    
     
 class Question(Base):
   __tablename__ = 'questions'

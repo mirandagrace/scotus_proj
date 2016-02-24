@@ -1,0 +1,33 @@
+{
+            "start": 1655.11,
+            "stop": 1664.81,
+            "byte_start": 6649387,
+            "byte_stop": 6688258,
+            "speaker": {
+              "ID": 21656,
+              "name": "Donald B. Verrilli, Jr.",
+              "href": "https:\/\/api.oyez.org\/people\/donald_b_verrilli_jr",
+              "view_count": 0,
+              "last_name": "Verrilli,",
+              "roles": null,
+              "thumbnail": null,
+              "length_of_service": 0,
+              "identifier": "donald_b_verrilli_jr"
+            },
+            "text_blocks": [
+              {
+                "start": 1655.11,
+                "stop": 1656.48,
+                "byte_start": 6649387,
+                "byte_stop": 6654925,
+                "text": "I will."
+              },
+              {
+                "start": 1656.48,
+                "stop": 1664.81,
+                "byte_start": 6654925,
+                "byte_stop": 6688258,
+                "text": "Thank you, Mr. Chief Justice. Actually, Mr. Chief Justice, if the Court is ready."
+              }
+            ]
+          }

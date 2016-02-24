@@ -108,12 +108,12 @@ class TestItemLoaders:
   def test_advocate_loader(self):
     item_1 = {
       'case_oyez_id': 56149,
-      'description': "Deputy Solicitor General, for the United States as amicus curiae for the respondents",
+      'description': "for the petitioners on Question 1",
       'role': "amicus - us",
-      'name': "Edwin S. Kneedler",
-      'oyez_id': 22617
+      'name': "Donald B. Verrilli, Jr.",
+      'oyez_id': 21656
     }
-    self.check_load_advocate_data('tests/pages/obergefell_advocate_kneedler.json', item_1)
+    self.check_load_advocate_data('tests/pages/obergefell_advocate_verilli.json', item_1)
 
   def test_advocate_load_speaking(self):
     item_1 = {
@@ -134,8 +134,8 @@ class TestItemLoaders:
   def test_section_loader(self):
     item_1 = {
       'argument_oyez_id': 13186,
-      'section_number': 0,
-      'advocate_owner_id': 19936
+      'number': 0,
+      'advocate_oyez_id': 19936
     }
     self.check_load_section_data('tests/pages/oregon_section.json', item_1)
 
@@ -143,10 +143,10 @@ class TestItemLoaders:
     item_1 = {
       'argument_oyez_id': 13186,
       'section_number': 0,
-      'turn_number': 0,
+      'number': 0,
       'justice_oyez_id': 15089,
-      'start': 43.911,
-      'end': 55.349,
+      'time_start': 43.911,
+      'time_end': 55.349,
       'text': "You -- I suppose have put in your brief the names of those cases and the amounts involved in them substantially to the statement?"
     }
     self.check_load_justice_turn_data('tests/pages/justice_turn.json', item_1)
@@ -155,10 +155,10 @@ class TestItemLoaders:
     item_1 = {
       'argument_oyez_id': 13186,
       'section_number': 0,
-      'turn_number': 1,
+      'number': 1,
       'advocate_oyez_id': 19936,
-      'start': 0,
-      'end': 43.911,
+      'time_start': 0,
+      'time_end': 43.911,
       'text': u"I\u0027m including my remarks with respect to the (Inaudible) the application of 3616. I think it is fair to say that the purposes applying that particular section were to -- to meet the protest of the District Courts, the various District Courts and the United States Attorneys in the various districts. And to ameliorate a lot of the small taxpayer who was being subjected to a felony prosecution and summonses where the tax involved was as low as a $100 or a $150."
     }
     self.check_load_advocate_turn_data('tests/pages/advocate_turn.json', item_1)
@@ -167,9 +167,9 @@ class TestItemLoaders:
     item_1 = {
       'argument_oyez_id': 16189,
       'section_number': 0,
-      'turn_number': 2,
-      'start': 886.611,
-      'end': 892.361,
+      'number': 2,
+      'time_start': 886.611,
+      'time_end': 892.361,
       'text': "Well, we reserved it only one way, in one direction?"
     }
     self.check_load_unknown_turn_data('tests/pages/unknown_turn.json', item_1)

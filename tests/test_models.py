@@ -1,11 +1,29 @@
 from scotus.db import DB
 from scotus.build import Build
-from scotus.db.models import Case, Justice, Petitioner, Respondent, Vote, Party
+from scotus.db.models import Case, Justice, Petitioner, Respondent, Vote, Party, Citation
 from scotus.settings import SCDB_TEST_FILE, TEST_DB
 from scotus.add import *
 from utilities import *
 
-class TestCase:
+def test_citation_eq():
+  c1 = Citation(volume=300, page=1)
+  c2 = Citation(volume=300, page=5)
+  c3 = Citation(volume=300, page=1)
+  c4 = Citation(volume=301, page=1)
+  assert_t(c3 == c1)
+  assert_f(c1==c2)
+  assert_f(c4==c1)
+  
+def test_citation_neq():
+  c1 = Citation(volume=300, page=1)
+  c2 = Citation(volume=300, page=5)
+  c3 = Citation(volume=300, page=1)
+  c4 = Citation(volume=301, page=1)
+  assert_f(c3 != c1)
+  assert_t(c1!=c2)
+  assert_t(c4!=c1)
+
+class TestModels:
   database = DB(TEST_DB)
   
   @classmethod
@@ -24,18 +42,31 @@ class TestCase:
   def get_cases(self):
     return self.session.query(Case).filter(Case.scdb_id.in_([u"1946-001", u"1946-002"])).all()
 
-  def test_winner(self):
+  def test_case_winner(self):
     for case in self.get_cases():
       if case.winning_side == 'petitioner':
-        yield assert_eq, case.winner.id, case.petitioner.id
-        yield assert_t, case.petitioner.winner
-        yield assert_f, case.respondent.winner
+        assert_eq(case.winner.id, case.petitioner.id)
+        assert_t(case.petitioner.winner)
+        assert_f(case.respondent.winner)
       elif case.winning_side == 'respondent':
-        yield assert_eq, case.winner.id, case.respondent.id
-        yield assert_t, case.respondent.winner
-        yield assert_f, case.petitioner.winner
+        assert_eq(case.winner.id, case.respondent.id)
+        assert_t(case.respondent.winner)
+        assert_f(case.petitioner.winner)
       else:
-        yield assert_eq, case.winner, None
+        assert_eq(case.winner, None)
+        
+  def test_case_loser(self):
+    for case in self.get_cases():
+      if case.losing_side == 'petitioner':
+        assert_eq(case.loser.id, case.petitioner.id)
+        assert_f(case.petitioner.winner)
+        assert_t(case.respondent.winner)
+      elif case.losing_side == 'respondent':
+        assert_eq(case.loser.id, case.respondent.id)
+        assert_f(case.respondent.winner)
+        assert_t(case.petitioner.winner)
+      else:
+        yield assert_eq, case.loser, None
 
   def test_questions(self):
     for case in self.get_cases():

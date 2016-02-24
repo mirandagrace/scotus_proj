@@ -17,7 +17,7 @@ class Party(Base):
   
   __mapper_args__ = {'polymorphic_on': side}
   
-  def __repr__(self):
+  def __repr__(self): # pragma: no cover
     return '<Party(docket={},{}: {})>'.format(self.case.docket, self.side, self.name)
   
 class CanWin(object):

@@ -43,7 +43,7 @@ class AlchemyItem(scrapy.Item):
   exclude_model_fields = frozenset([])
   search_fields = frozenset([])
   
-  def clean(self):
+  def clean(self): #pragma: no cover
     pass
     
   def on_add_record(self, session, record):
@@ -51,9 +51,12 @@ class AlchemyItem(scrapy.Item):
     
   def on_update_record(self, session, record):
     pass
+
+  def on_send_record(self, session, record):
+    pass
     
   def _add_args(self):
-    return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v}
+    return {k:v for k,v in dict(self).items() if k not in self.exclude_model_fields and v!=None}
     
   def _add_record(self, session):
     record = self.Model(**self._add_args())
@@ -65,24 +68,34 @@ class AlchemyItem(scrapy.Item):
     return self.Model.search_for_scraped(session, **self._search_args())
     
   def _search_args(self):
-    return {k:v for k,v in dict(self).items() if k in self.search_fields and v}
+    return {k:v for k,v in dict(self).items() if k in self.search_fields and v!=None}
     
   def send(self, session):
     self.clean()
     item_obj = self._get(session)
-    if item_obj == None:
-      item_obj = self._add_record(session)
-      session.add(item_obj)
-    else:
-      self._update_record(item_obj)
-    self.on_update_record(session, item_obj)
+    try:
+      if item_obj == None:
+        item_obj = self._add_record(session)
+      else:
+        self._update_record(session, item_obj)
+      session.commit()
+    except:
+      session.rollback()
+      raise
+    try:
+      self.on_send_record(session, item_obj)
+      session.commit()
+    except:
+      session.rollback()
+      raise
       
   def _update_args(self):
     return {k:v for k,v in dict(self).items() if k in self.update_fields and v}
     
-  def _update_record(self, record):
+  def _update_record(self, session, record):
     for k, v in self._update_args().items():
       setattr(record, k, v)
+    self.on_update_record(session, record)
    
 class CaseItem(AlchemyItem):
   # define the fields for your item here like:
@@ -109,7 +122,8 @@ class CaseItem(AlchemyItem):
   description = scrapy.Field(output_processor = text_output_processor)
   
   Model = Case
-  update_fields = frozenset(['oyez_id', 'decision', 'granted_date', 'conclusion', 'description'])
+  update_fields = frozenset(['oyez_id', 'decision', 'granted_date', 'conclusion', 'description', 'winning_side',
+                             'losing_side'])
   exclude_model_fields = frozenset(['questions', 'petitioner', 'respondent', 'winning_party'])
   search_fields = frozenset(['docket', 'volume', 'page'])
   
@@ -123,27 +137,40 @@ class CaseItem(AlchemyItem):
       item['losing_side'] = u'petitioner'
     else:
       pass
-    
+      
   def on_add_record(self, session, record):
-    if self['winning_party'] == 'petitioner':
+    wp = self.get('winning_party', '')
+    if wp == 'petitioner':
       record.petitioner = Petitioner(name=self.get('petitioner', None), winner=True)
       record.respondent = Respondent(name=self.get('respondent', None), winner=False)
-    elif self['winning_party'] == 'respondent':
+    elif wp == 'respondent':
       record.petitioner = Petitioner(name=self.get('petitioner', None), winner=False)
       record.respondent = Respondent(name=self.get('respondent', None), winner=True)
     else:
       record.respondent = Respondent(name=self.get('respondent', None))
       record.petitioner = Petitioner(name=self.get('petitioner', None))
-
+      
   def on_update_record(self, session, record):
-    questions = self.get('questions', None)
-    if questions != None:
-      questions = map(lambda x: x.strip('0123456789()').strip(), questions.split('\n'))
-    conclusions = self.get('conclusion', None)
-    if conclusions != None:
-      conclusions = conclusions.split('.', 1)[0].split(',')
-    for q, c in zip(questions, conclusions):
-      record.questions.append(Question(text=q, disposition=c.lower()))
+    wp = self.get('winning_party', '')
+    if wp == 'petitioner':
+      record.petitioner.winner=True
+      record.respondent.winner=False
+    elif wp == 'respondent':
+      record.petitioner.winner=False
+      record.respondent.winner=True
+    else:
+      pass
+    
+  def on_send_record(self, session, record):
+    if len(record.questions) == 0:
+      questions = self.get('questions', None)
+      if questions != None:
+        questions = map(lambda x: x.strip('0123456789()').strip(), questions.split('\n'))
+      conclusions = self.get('conclusion', None)
+      if conclusions != None:
+        conclusions = conclusions.split('.', 1)[0].split(',')
+      for q, c in zip(questions, conclusions):
+        record.questions.append(Question(text=q, disposition=c.lower()))
   
 class CaseLoader(JsonItemLoader):
   default_item_class = CaseItem
@@ -187,8 +214,8 @@ class VoteItem(AlchemyItem):
   opinions_joined = scrapy.Field()
 
   Model = Vote
-  update_fields = frozenset([])
-  exclude_model_fields = frozenset(['justice_oyez_id', 'opinion_written', 'opinions_joined', 'case_oyez_id'])
+  update_fields = frozenset(['vote'])
+  exclude_model_fields = frozenset(['justice_oyez_id', 'opinion_written', 'opinions_joined', 'case_oyez_id', 'opinion_kind'])
   search_fields = frozenset(['justice_oyez_id', 'case_oyez_id'])
   
   def clean(self):
@@ -198,40 +225,29 @@ class VoteItem(AlchemyItem):
     record.case_id = Case.search_by_oyez_id(session, self['case_oyez_id']).id
     record.justice_id = Justice.search_by_oyez_id(session, self['justice_oyez_id']).id
     
-  def on_update_record(self, session, record):
+  def on_send_record(self, session, record):
     if self['opinion_written'] != 'none':
       opinion = Opinion.search_by_author_vote(session, record.case_id, record.justice_id)
-      if self['opinion_written'] in ['majority', 'plurality', 'per curiam']:
-        opinion_kind = u'majority'
-      elif self['opinion_written'] == 'dissent':
-        opinion_kind = u'dissent'
-      elif self['opinion_written'] in ['concurrence', 'special concurrence']:
-        opinion_kind = u'concurrence'
-      else:
-        opinion_kind = None
+      
       if opinion == None:
-        opinion = Opinion(case_id = record.case_id, kind=opinion_kind, opinion_type=self['opinion_written'])
+        opinion = Opinion(case_id = record.case_id, kind=self['opinion_written'])
         ow = OpinionWritten(opinion=opinion, justice=record.justice)
         session.add(opinion)
         session.add(ow)
       else:
-        opinion.kind = opinion_kind
-        opinion.opinion_type = self['opinion_written']
-    justices_joined = self.get('opinions_joined', None)
-    if justices_joined == None:
-      justices_joined = []
-    for justice_joined in justices_joined:
-      justice_joined = Justice.search_by_oyez_id(session, justice_joined)
+        opinion.kind = self['opinion_written']
+
+    justices_joined = self.get('opinions_joined', [])
+    for justice_joined_oyez_id in justices_joined:
+      justice_joined = Justice.search_by_oyez_id(session, justice_joined_oyez_id)
       j_opinion = Opinion.search_by_author_vote(session, record.case_id, justice_joined.id)
       if j_opinion == None:
         j_opinion = Opinion(case_id = record.case_id)
         session.add(j_opinion)
-        ow = OpinionWritten(opinion=j_opinion, justice = justice_joined)
+        ow = OpinionWritten(opinion=j_opinion, justice= justice_joined)
         session.add(ow)
-        oj = OpinionJoined(opinion=j_opinion, justice = record.justice)
-        session.add(oj)
-      else:
-        j_opinion.joiners.append(record.justice)
+      oj = OpinionJoined(opinion=j_opinion, justice = record.justice)
+      session.add(oj)
 
 
 class VoteLoader(JsonItemLoader):
@@ -262,29 +278,24 @@ class AdvocateItem(AlchemyItem):
   search_fields = frozenset(['oyez_id'])
   
   def clean(self):
-    description = self.get('description', None)
-    if description == None:
-      pass
-    elif 'petitioner' in description.lower() or 'appellant' in description.lower():
+    description = self.get('description', '')
+    if 'petitioner' in description.lower() or 'appellant' in description.lower():
       self['side'] = u'petitioner'
     elif 'respondent' in description.lower() or 'appellee' in description.lower():
       self['side'] = u'respondent'
     else:
       pass
     
-  def on_add_record(self, session, record):
-    pass
-    
-  def on_update_record(self, session, record):
+  def on_send_record(self, session, record):
     case = Case.search_by_oyez_id(session, self['case_oyez_id'])
     advocacy = Advocacy.search_for_scraped(session, case.id, self['oyez_id'])
     if advocacy == None:
-      advocacy = Advocacy(side=self['side'], role=self['role'], case_id=case.id)
+      advocacy = Advocacy(side=self.get('side', None), role=self.get('role',None), case_id=case.id)
       advocacy.advocate = record
       session.add(advocacy)
     else:
-      advocacy.side = self['side']
-      advocacy.role = self['role']
+      advocacy.side = self.get('side', None)
+      advocacy.role = self.get('role', None)
 
 class AdvocateLoader(JsonItemLoader):
   default_item_class = AdvocateItem
@@ -304,10 +315,19 @@ class AdvocateLoader(JsonItemLoader):
     self.add_json('oyez_id', 'speaker.ID')
     return self.load_item()
 
-class ArgumentItem(scrapy.Item):
+class ArgumentItem(AlchemyItem):
   case_oyez_id = scrapy.Field()
   date = scrapy.Field()
   oyez_id = scrapy.Field()
+
+  Model = Argument
+  update_fields = frozenset(['date'])
+  exclude_model_fields = frozenset(['case_oyez_id'])
+  search_fields = frozenset(['oyez_id'])
+    
+  def on_add_record(self, session, record):
+    case = Case.search_by_oyez_id(session, self['case_oyez_id'])
+    record.case = case
 
 class ArgumentLoader(JsonItemLoader):
   default_item_class = ArgumentItem
@@ -320,10 +340,28 @@ class ArgumentLoader(JsonItemLoader):
     self.add_json('date', 'title', re=r'Oral Argument - ([A-Za-z 0-9,]+) ')
     return self.load_item()
 
-class SectionItem(scrapy.Item):
+class SectionItem(AlchemyItem):
   argument_oyez_id = scrapy.Field()
-  section_number = scrapy.Field()
-  advocate_owner_id = scrapy.Field()
+  number = scrapy.Field()
+  advocate_oyez_id = scrapy.Field()
+
+  Model = Section
+  update_fields = frozenset([])
+  exclude_model_fields = frozenset(['argument_oyez_id', 'advocate_oyez_id'])
+  search_fields = frozenset(['argument_oyez_id', 'number'])
+
+  def on_add_record(self, session, record):
+    argument = Argument.search_by_oyez_id(session, self['argument_oyez_id'])
+    record.argument = argument
+
+  def on_send_record(self, session, record):
+    advocate_oyez_id = self.get('advocate_oyez_id', None)
+    print advocate_oyez_id
+    if advocate_oyez_id:
+      case = record.argument.case
+      advocacy = Advocacy.search_for_scraped(session, case_id=case.id, advocate_oyez_id=advocate_oyez_id)
+      record.advocacy = advocacy
+
 
 class SectionLoader(JsonItemLoader):
   default_item_class = SectionItem
@@ -331,20 +369,32 @@ class SectionLoader(JsonItemLoader):
 
   def load_section_data(self, argument_id, number):
     self.add_value('argument_oyez_id', argument_id)
-    self.add_value('section_number', number)
-    return
-
-  def load_advocate_owner(self, advocate_oyez_id):
-    self.add_value('advocate_owner_id', advocate_oyez_id)
+    self.add_value('number', number)
     return self.load_item()
 
-class TurnItem(scrapy.Item):
-  turn_number = scrapy.Field()
+  def load_advocate_owner(self, advocate_oyez_id):
+    self.add_value('advocate_oyez_id', advocate_oyez_id)
+    return self.load_item()
+
+class TurnItem(AlchemyItem):
+  number = scrapy.Field()
   section_number = scrapy.Field()
   argument_oyez_id = scrapy.Field()
   text = scrapy.Field()
-  start = scrapy.Field()
-  end = scrapy.Field()
+  time_start = scrapy.Field()
+  time_end = scrapy.Field()
+
+  Model = Turn
+  update_fields = frozenset([])
+  exclude_model_fields = frozenset(['section_number', 'argument_oyez_id'])
+  search_fields = frozenset(['number', 'section_number', 'argument_oyez_id'])
+
+  def set_section(self, session, record):
+    section = Section.search_for_scraped(session, argument_oyez_id=self['argument_oyez_id'], number=self['section_number'])
+    record.section = section
+    
+  def on_add_record(self, session, record):
+    self.set_section(session, record)
 
 class TurnLoader(JsonItemLoader):
   default_item_class = TurnItem
@@ -355,9 +405,9 @@ class TurnLoader(JsonItemLoader):
   def _load_base_data(self, argument_id, section_number, turn_number):
     self.add_value('argument_oyez_id', argument_id)
     self.add_value('section_number', section_number)
-    self.add_value('turn_number', turn_number)
-    self.add_json('start', 'start')
-    self.add_json('end', 'stop')
+    self.add_value('number', turn_number)
+    self.add_json('time_start', 'start')
+    self.add_json('time_end', 'stop')
     self.add_json('text', 'text_blocks[*].text')
     return
 
@@ -367,6 +417,14 @@ class TurnLoader(JsonItemLoader):
 
 class JusticeTurnItem(TurnItem):
   justice_oyez_id = scrapy.Field()
+
+  Model = JusticeTurn
+  exclude_model_fields = frozenset(['section_number', 'argument_oyez_id', 'justice_oyez_id'])
+
+  def on_add_record(self, session, record):
+    self.set_section(session, record)
+    justice = Justice.search_by_oyez_id(session, self['justice_oyez_id'])
+    record.justice = justice
 
 class JusticeTurnLoader(TurnLoader):
   default_item_class = JusticeTurnItem
@@ -379,6 +437,14 @@ class JusticeTurnLoader(TurnLoader):
 class AdvocateTurnItem(TurnItem):
   advocate_oyez_id = scrapy.Field()
 
+  Model = AdvocateTurn
+  exclude_model_fields = frozenset(['section_number', 'argument_oyez_id', 'advocate_oyez_id'])
+
+  def on_add_record(self, session, record):
+    self.set_section(session, record)
+    advocate = Advocate.search_by_oyez_id(session, self['advocate_oyez_id'])
+    record.advocate = advocate
+
 class AdvocateTurnLoader(TurnLoader):
   default_item_class = AdvocateTurnItem
 
@@ -389,12 +455,10 @@ class AdvocateTurnLoader(TurnLoader):
 
 def turn_loader_factory(turn_json):
   speaker = turn_json['speaker']
-  role = jmespath.search('speaker.roles[0].type', turn_json)
-  if speaker == None:
-    return TurnLoader(turn_json)
-  elif role == None:
+  role = jmespath.search('speaker.roles', turn_json)
+  if role == None and speaker !=None:
     return AdvocateTurnLoader(turn_json)
-  elif role == 'scotus_justice':
+  elif role:
     return JusticeTurnLoader(turn_json)
   else:
     return TurnLoader(turn_json)
