@@ -9,6 +9,7 @@ from ..settings import TEST_DB, DEFAULT_DB
 from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader, AdvocateTurnItem
 from ..items import ArgumentLoader, SectionLoader, turn_loader_factory
 from ..db.models import *
+from ..db import DB
 import sexmachine.detector as gender
 
   
@@ -34,7 +35,7 @@ class OyezSpider(scrapy.Spider):
       self.db = DB(TEST_DB)
     else:
       self.db = DB(DEFAULT_DB)
-    self.session = db.Session()
+    self.session = self.db.Session()
     
   def term_url(self, page):
     return 'https://api.oyez.org/cases?filter=term:{}&page={}'.format(self.term, page)
@@ -72,6 +73,7 @@ class OyezSpider(scrapy.Spider):
     loader = CaseLoader(json_object=json_response)
     case = loader.load_case_data()
     case.send(self.session)
+    case_id = case['oyez_id']
 
 
     # if there is explicit decision data, go and get it; otherwise add the case to the results
@@ -137,7 +139,7 @@ class OyezSpider(scrapy.Spider):
     # parse the arguments
     argument = ArgumentLoader(json_response).load_argument_data(case_oyez_id)
     argument_oyez_id = argument['oyez_id']
-    results.append(argument)
+    argument.send(self.session)
 
     # parse the sections
     sections = jmespath.search('transcript.sections', json_response)
@@ -164,12 +166,12 @@ class OyezSpider(scrapy.Spider):
             pass
           if section == None: # if we haven't assigned a primary advocate to the section yet
             section = section_loader.load_advocate_owner(advocate_id)
-            section.send()
+            section.send(self.session)
           else:
             pass
         else:
           pass
-        results.append(turn)
+        turn.send(self.session)
     return results
 
 

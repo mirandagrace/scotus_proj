@@ -278,10 +278,8 @@ class AdvocateItem(AlchemyItem):
   search_fields = frozenset(['oyez_id'])
   
   def clean(self):
-    description = self.get('description', None)
-    if description == None:
-      pass
-    elif 'petitioner' in description.lower() or 'appellant' in description.lower():
+    description = self.get('description', '')
+    if 'petitioner' in description.lower() or 'appellant' in description.lower():
       self['side'] = u'petitioner'
     elif 'respondent' in description.lower() or 'appellee' in description.lower():
       self['side'] = u'respondent'
@@ -297,7 +295,7 @@ class AdvocateItem(AlchemyItem):
       session.add(advocacy)
     else:
       advocacy.side = self.get('side', None)
-      advocacy.role = self.get('role',None)
+      advocacy.role = self.get('role', None)
 
 class AdvocateLoader(JsonItemLoader):
   default_item_class = AdvocateItem
@@ -386,7 +384,7 @@ class TurnItem(AlchemyItem):
   time_start = scrapy.Field()
   time_end = scrapy.Field()
 
-  Model = UnknownTurn
+  Model = Turn
   update_fields = frozenset([])
   exclude_model_fields = frozenset(['section_number', 'argument_oyez_id'])
   search_fields = frozenset(['number', 'section_number', 'argument_oyez_id'])
@@ -425,7 +423,7 @@ class JusticeTurnItem(TurnItem):
 
   def on_add_record(self, session, record):
     self.set_section(session, record)
-    justice = Justices.search_by_oyez_id(self['justice_oyez_id'])
+    justice = Justice.search_by_oyez_id(session, self['justice_oyez_id'])
     record.justice = justice
 
 class JusticeTurnLoader(TurnLoader):
@@ -444,7 +442,7 @@ class AdvocateTurnItem(TurnItem):
 
   def on_add_record(self, session, record):
     self.set_section(session, record)
-    advocate = Advocate.search_by_oyez_id(self['advocate_oyez_id'])
+    advocate = Advocate.search_by_oyez_id(session, self['advocate_oyez_id'])
     record.advocate = advocate
 
 class AdvocateTurnLoader(TurnLoader):
@@ -457,12 +455,10 @@ class AdvocateTurnLoader(TurnLoader):
 
 def turn_loader_factory(turn_json):
   speaker = turn_json['speaker']
-  role = jmespath.search('speaker.roles[0].type', turn_json)
-  if speaker == None:
-    return TurnLoader(turn_json)
-  elif role == None:
+  role = jmespath.search('speaker.roles', turn_json)
+  if role == None and speaker !=None:
     return AdvocateTurnLoader(turn_json)
-  elif role == 'scotus_justice':
+  elif role:
     return JusticeTurnLoader(turn_json)
   else:
     return TurnLoader(turn_json)

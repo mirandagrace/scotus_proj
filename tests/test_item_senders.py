@@ -1,5 +1,5 @@
 from utilities import *
-from scotus.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader, TurnLoader
+from scotus.items import CaseLoader, VoteLoader, AdvocateLoader, ArgumentLoader, SectionLoader, TurnLoader, JusticeTurnLoader, AdvocateTurnLoader
 from scotus.settings import TEST_DB, SCDB_TEST_FILE
 from scotus.add import add_justices, add_scdb_votes
 from scotus.build import Build
@@ -63,11 +63,17 @@ def send_section_advocate(session, section_file, section_item, advocate_id):
   section_item.send(session)
   return section_item
 
-def send_turn(session, turn_file, argument_id, section_number, number):
+def send_turn(session, turn_file, argument_id, section_number, number, Loader=TurnLoader):
   turn_json = load_json(turn_file)
-  turn_item = TurnLoader(turn_json).load_turn_data(argument_id, section_number, number)
+  turn_item = Loader(turn_json).load_turn_data(argument_id, section_number, number)
   turn_item.send(session)
   return turn_item
+  
+def send_advocate_turn(session, turn_file, argument_id, section_number, number):
+  return send_turn(session, turn_file, argument_id, section_number, number, Loader=AdvocateTurnLoader)
+  
+def send_justice_turn(session, turn_file, argument_id, section_number, number):
+  return send_turn(session, turn_file, argument_id, section_number, number, Loader=JusticeTurnLoader)
 
 class DBReset(object):
   db = DB(TEST_DB)
@@ -176,7 +182,7 @@ class DBReset(object):
     
   @classmethod
   def advocate_from_speaking2(self):
-    return send_advocate_from_speaking(self.session, 'tests/pages/advocate_from_speaking.json', 56072)
+    return send_advocate_from_speaking(self.session, 'tests/pages/advocate_speaking2.json', 56072)
     
   ##### ARGUMENT FUNCTIONS #####
   @classmethod
@@ -203,7 +209,11 @@ class DBReset(object):
 
   @classmethod
   def advocate_turn(self):
-    return send_turn(self.session, 'tests/pages/adv_turn.json', 23751, 2, 1)
+    return send_advocate_turn(self.session, 'tests/pages/adv_turn.json', 23751, 2, 1)
+    
+  @classmethod
+  def justice_turn(self):
+    return send_justice_turn(self.session, 'tests/pages/justice_turn_o.json', 23751, 2, 2)
   
   @classmethod
   def teardown_class(cls):
@@ -282,6 +292,7 @@ class TestAdvocateSender(DBReset):
     cls.new_case()
     cls.update_case()
     cls.update_case2_base()
+    return
     
   def test_new_advocate(self):
     advocate=Advocate.search_for_scraped(self.session, 56185)
@@ -292,6 +303,7 @@ class TestAdvocateSender(DBReset):
     assert_t(len(advocate.cases)==1)
     advocacy = advocate.advocacies[0]
     assert_t(advocacy.side=='respondent')
+    return
   
   def test_new_advocate_from_speaking(self):
     advocate=Advocate.search_for_scraped(self.session, 56070)
@@ -300,6 +312,7 @@ class TestAdvocateSender(DBReset):
     advocate=Advocate.search_for_scraped(self.session, 56070)
     assert_t(advocate)
     assert_t(len(advocate.cases)==1)
+    return
     
   def test_update_advocate(self):
     advocate=Advocate.search_for_scraped(self.session, 21656)
@@ -308,26 +321,36 @@ class TestAdvocateSender(DBReset):
     advocate=Advocate.search_for_scraped(self.session, 21656)
     assert_t(advocate)
     assert_t(len(advocate.cases)==2)
+    return
     
   def test_update_speaking(self):
     self.advocate_from_speaking2()
+    advocate=Advocate.search_for_scraped(self.session, 29018)
+    assert_t(advocate)
+    assert_t(len(advocate.cases)==1)
+    advocacy = advocate.advocacies[0]
+    assert_t(advocacy)
+    assert_t(advocacy.side==None)
     self.advocate_update_speaking()
     advocate=Advocate.search_for_scraped(self.session, 29018)
     assert_t(advocate)
     assert_t(len(advocate.cases)==1)
     advocacy = advocate.advocacies[0]
     assert_t(advocacy.side=='respondent')
+    return
     
 class TestTranscriptSenders(DBReset):
   @classmethod
   def setup_class(cls):
     cls.session = cls.build()
     cls.new_case()
+    return
 
   def test_new_argument(self):
     argument_item = self.new_argument()
     argument = Argument.search_by_oyez_id(self.session, 23751)
     assert_t(argument.date)
+    return
 
 class TestSectionSenders(DBReset):
   @classmethod
@@ -336,11 +359,13 @@ class TestSectionSenders(DBReset):
     cls.new_case()
     cls.new_argument()
     cls.advocate_bursch()
+    return
 
   def test_new_section(self):
     section_item = self.new_section()
     section = Section.search_for_scraped(self.session, section_item['argument_oyez_id'], section_item['number'])
     assert_t(section)
+    return
 
   def test_section_advocate_update(self):
     section_item = self.new_section2()
@@ -350,8 +375,9 @@ class TestSectionSenders(DBReset):
     case = section.argument.case
     advocacy = Advocacy.search_for_scraped(self.session, case_id=case.id, advocate_oyez_id=section_item['advocate_oyez_id'])
     assert_t(section.advocacy.side=='respondent')
+    return
 
-class TestAdvocateSender(DBReset):
+class TestTurnSender(DBReset):
   @classmethod
   def setup_class(cls):
     cls.session = cls.build()
@@ -359,19 +385,32 @@ class TestAdvocateSender(DBReset):
     cls.new_argument()
     cls.advocate_verrilli()
     cls.new_section()
+    return
 
   def test_unknown_turn(self):
     turn_item = self.unknown_turn()
-    turns = self.session.query(UnknownTurn).all()
-    t = turns[0]
-    assert_eq(t.kind, u'unknown')
+    turn = self.session.query(Turn).filter(Turn.kind==u'unknown').scalar()
+    assert_t(turn)
+    assert_eq(turn.kind, u'unknown')
+    return
 
   def test_advocate_turn(self):
     turn_item = self.advocate_turn()
-    turn= Turn.search_for_scraped(23751, 2, 1)
+    turn= AdvocateTurn.search_for_scraped(self.session, 23751, 2, 1)
+    assert_t(turn)
     assert_eq(turn.kind, u'advocate')
     assert_eq(turn.advocate.oyez_id, 21656)
+    return
     
+  def test_justice_turn(self):
+    turn_item = self.justice_turn()
+    turn= JusticeTurn.search_for_scraped(self.session, 23751, 2, 2)
+    print self.session.query(Turn).all()
+    assert_t(turn)
+    assert_eq(turn.kind, u'justice')
+    assert_eq(turn.justice.oyez_id,  15086)
+    return    
+   
 
 
 

@@ -89,6 +89,7 @@ class Section(Base):
   advocacy_id = Column(Integer, ForeignKey('advocacies.id'))
   advocacy = relationship('Advocacy')
   advocate = association_proxy('advocacy', 'advocate')
+  side = association_proxy('advocacy', 'side')
 
   turns = relationship('Turn', back_populates='section')
 
@@ -114,7 +115,7 @@ class Turn(Base):
   time_start = Column(Float)
   time_end = Column(Float)
 
-  __mapper_args__ = {'polymorphic_on': kind}
+  __mapper_args__ = {'polymorphic_on': kind, 'polymorphic_identity': u'unknown'}
 
   @hybrid_property
   def length(self):
@@ -124,23 +125,22 @@ class Turn(Base):
   def speaker(self):
     return None
 
-  @classmethod
-  def search_for_scraped(cls, session, argument_oyez_id=None, section_number=None, number=None):
-    baked_query = bakery(lambda session: session.query(cls).join(Section, cls.section).join(Argument, Section.argument))
+  @staticmethod
+  def search_for_scraped(session, argument_oyez_id=None, section_number=None, number=None):
+    baked_query = bakery(lambda session: session.query(Turn).join(Section, Turn.section).join(Argument, Section.argument))
     baked_query += lambda q: q.filter(Argument.oyez_id == bindparam('argument_oyez_id'))
     baked_query += lambda q: q.filter(Section.number == bindparam('section_number'))
-    baked_query += lambda q: q.filter(cls.number == bindparam('number'))
+    baked_query += lambda q: q.filter(Turn.number == bindparam('number'))
     result = baked_query(session).params(argument_oyez_id=argument_oyez_id, section_number=section_number, number=number).one_or_none()
     return result
     
-class UnknownTurn(Turn):
-  __mapper_args__ = {'polymorphic_identity': u'unknown'}
-
 class AdvocateTurn(Turn):
   @declared_attr
   def advocate_id(cls):
-    return Turn.__table__.c.get('justice_id', Column(Integer, ForeignKey('advocates.id')))
+    return Turn.__table__.c.get('advocate_id', Column(Integer, ForeignKey('advocates.id')))
 
+  advocate = relationship('Advocate')
+    
   @property
   def speaker(self):
     return self.advocate
@@ -157,7 +157,7 @@ class JusticeTurn(Turn):
   @property
   def speaker(self):
     return self.justice
-
+    
   __mapper_args__ = {'polymorphic_identity': u'justice'}
 
 
