@@ -92,13 +92,13 @@ class Opinion(Base):
   kind = Column(Unicode(20)) # oyez casetext
   text = Column(UnicodeText) # casetext
   
-  justices_associated = relationship('OpinionAssociation', back_populates='opinion', cascade="all, delete-orphan")
+  justices_associated = relationship('OpinionAssociation', back_populates='opinion')
   justices = association_proxy('justices_associated', 'justice')
   
-  justices_writing = relationship('OpinionWritten', back_populates='opinion', cascade="all, delete-orphan")
+  justices_writing = relationship('OpinionWritten', back_populates='opinion')
   authors = association_proxy('justices_writing', 'justice')
   
-  justices_joining = relationship('OpinionJoined', back_populates='opinion', cascade="all, delete-orphan")
+  justices_joining = relationship('OpinionJoined', back_populates='opinion')
   joiners = association_proxy('justices_joining', 'justice')
   
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
@@ -107,7 +107,7 @@ class Opinion(Base):
   @classmethod
   def search_by_author_vote(cls, session, case_id, author_id):
     baked_query = bakery(lambda session: session.query(cls).join(OpinionWritten, cls.justices_writing))
-    baked_query += lambda q: q.filter(Case.id == bindparam('case_id'))
+    baked_query += lambda q: q.filter(cls.case_id == bindparam('case_id'))
     baked_query += lambda q: q.filter(OpinionWritten.justice_id == bindparam('justice_id'))
     result = baked_query(session).params(justice_id=author_id, case_id=case_id).one_or_none()
     return result

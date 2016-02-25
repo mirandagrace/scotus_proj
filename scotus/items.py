@@ -123,7 +123,8 @@ class CaseItem(AlchemyItem):
   
   Model = Case
   update_fields = frozenset(['oyez_id', 'decision', 'granted_date', 'conclusion', 'description', 'winning_side',
-                             'losing_side', 'facts'])
+                             'losing_side', 'facts', 'decision', 'dec_type', 'prec_alt', 'volume', 'page', 'docket',
+                             'name', 'winning_side', 'losing_side'])
   exclude_model_fields = frozenset(['questions', 'petitioner', 'respondent', 'winning_party'])
   search_fields = frozenset(['docket', 'volume', 'page'])
   
@@ -243,7 +244,7 @@ class VoteItem(AlchemyItem):
       justice_joined = Justice.search_by_oyez_id(session, justice_joined_oyez_id)
       j_opinion = Opinion.search_by_author_vote(session, case.id, justice_joined.id)
       if j_opinion == None:
-        j_opinion = Opinion(case_id = case.id)
+        j_opinion = Opinion(case=case,)
         session.add(j_opinion)
         ow = OpinionWritten(opinion=j_opinion, justice= justice_joined)
         session.add(ow)
