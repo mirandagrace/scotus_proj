@@ -107,8 +107,8 @@ class Opinion(Base):
   @classmethod
   def search_by_author_vote(cls, session, case_id, author_id):
     baked_query = bakery(lambda session: session.query(cls).join(OpinionWritten, cls.justices_writing))
-    baked_query += lambda q: q.filter(Case.id == bindparam('case_id'),
-                                      OpinionWritten.justice_id == bindparam('justice_id'))
+    baked_query += lambda q: q.filter(Case.id == bindparam('case_id'))
+    baked_query += lambda q: q.filter(OpinionWritten.justice_id == bindparam('justice_id'))
     result = baked_query(session).params(justice_id=author_id, case_id=case_id).one_or_none()
     return result
   

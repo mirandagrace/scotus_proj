@@ -242,6 +242,11 @@ class TestCaseSender(DBReset):
     case = self.session.query(Case).filter(Case.docket==u"13-1371").scalar()
     assert_t(len(case.questions) == 1)
     assert_t(case.oyez_id == 56072)
+
+  def test_facts_bug(self):
+    send_case(self.session,'tests/pages/eloanis.json')
+    case = self.session.query(Case).filter(Case.docket==u"13-983").scalar()
+    assert_f(case.facts==None)
     
 class TestVoteSender(DBReset):
   @classmethod

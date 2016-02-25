@@ -90,6 +90,8 @@ class OyezSpider(scrapy.Spider):
 
     # if there is transcript data, go and get it
     transcript_links = jmespath.search('oral_argument_audio[*].href', json_response)
+    if transcript_links == None:
+      transcript_links = []
     for transcript_link in transcript_links:
       results.append(scrapy.Request(url=transcript_link, callback=self.parse_transcript, meta={'case_id':case_id}))
     return results

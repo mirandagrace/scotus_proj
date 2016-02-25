@@ -123,7 +123,7 @@ class CaseItem(AlchemyItem):
   
   Model = Case
   update_fields = frozenset(['oyez_id', 'decision', 'granted_date', 'conclusion', 'description', 'winning_side',
-                             'losing_side'])
+                             'losing_side', 'facts'])
   exclude_model_fields = frozenset(['questions', 'petitioner', 'respondent', 'winning_party'])
   search_fields = frozenset(['docket', 'volume', 'page'])
   
@@ -226,11 +226,12 @@ class VoteItem(AlchemyItem):
     record.justice_id = Justice.search_by_oyez_id(session, self['justice_oyez_id']).id
     
   def on_send_record(self, session, record):
+    case = record.case
     if self['opinion_written'] != 'none':
       opinion = Opinion.search_by_author_vote(session, record.case_id, record.justice_id)
       
       if opinion == None:
-        opinion = Opinion(case_id = record.case_id, kind=self['opinion_written'])
+        opinion = Opinion(case_id = case.id, kind=self['opinion_written'])
         ow = OpinionWritten(opinion=opinion, justice=record.justice)
         session.add(opinion)
         session.add(ow)
@@ -240,9 +241,9 @@ class VoteItem(AlchemyItem):
     justices_joined = self.get('opinions_joined', [])
     for justice_joined_oyez_id in justices_joined:
       justice_joined = Justice.search_by_oyez_id(session, justice_joined_oyez_id)
-      j_opinion = Opinion.search_by_author_vote(session, record.case_id, justice_joined.id)
+      j_opinion = Opinion.search_by_author_vote(session, case.id, justice_joined.id)
       if j_opinion == None:
-        j_opinion = Opinion(case_id = record.case_id)
+        j_opinion = Opinion(case_id = case.id)
         session.add(j_opinion)
         ow = OpinionWritten(opinion=j_opinion, justice= justice_joined)
         session.add(ow)
@@ -356,7 +357,6 @@ class SectionItem(AlchemyItem):
 
   def on_send_record(self, session, record):
     advocate_oyez_id = self.get('advocate_oyez_id', None)
-    print advocate_oyez_id
     if advocate_oyez_id:
       case = record.argument.case
       advocacy = Advocacy.search_for_scraped(session, case_id=case.id, advocate_oyez_id=advocate_oyez_id)

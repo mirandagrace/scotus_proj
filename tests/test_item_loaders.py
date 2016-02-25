@@ -174,6 +174,21 @@ class TestItemLoaders:
     }
     self.check_load_unknown_turn_data('tests/pages/unknown_turn.json', item_1)
 
+  def test_turn_loader_factory_unknown(self):
+    unknown_json = load_json('tests/pages/unknown_turn.json')
+    loader=turn_loader_factory(unknown_json)
+    assert_eq(loader.__class__, TurnLoader)
+
+  def test_turn_loader_factory_advocate(self):
+    advocate_json = load_json('tests/pages/advocate_turn.json')
+    loader=turn_loader_factory(advocate_json)
+    assert_eq(loader.__class__, AdvocateTurnLoader)
+
+  def test_turn_loader_factory_justice(self):
+    advocate_json = load_json('tests/pages/justice_turn.json')
+    loader=turn_loader_factory(advocate_json)
+    assert_eq(loader.__class__, JusticeTurnLoader)
+
 
 
   
