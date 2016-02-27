@@ -311,18 +311,20 @@ class AdvocateLoader(JsonItemLoader):
   default_item_class = AdvocateItem
   default_ouput_processor = TakeFirst()
 
-  def load_advocate_data(self, case_id, gp):
+  def load_advocate_data(self, case_id, gp=None):
+    if gp != None:
+      self.add_json('gender', 'advocate.name', gp)
     self.add_value('case_oyez_id', case_id)
     self.add_json('description', 'advocate_description')
     self.add_json('role', 'advocate_role.value')
-    self.add_json('gender', 'advocate.name', gp)
     self.add_json('name', 'advocate.name')
     self.add_json('oyez_id', 'advocate.ID')
     return self.load_item()
 
-  def load_speaking_data(self, case_id, gp):
+  def load_speaking_data(self, case_id, gp=None):
+    if gp != None:
+      self.add_json('gender', 'speaker.name', gp)
     self.add_value('case_oyez_id', case_id)
-    self.add_json('gender', 'speaker.name', gp)
     self.add_json('name', 'speaker.name')
     self.add_json('oyez_id', 'speaker.ID')
     return self.load_item()
