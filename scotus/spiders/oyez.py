@@ -18,7 +18,7 @@ class OyezSpider(scrapy.Spider):
   allowed_domains = ["oyez.org"]
 
   def gender_processor(self, name):
-    first_name = name.split()
+    first_name = name.split()[0]
     gender =  self.detector.get_gender(first_name)
     if gender == 'female':
       return u'F'
@@ -121,7 +121,7 @@ class OyezSpider(scrapy.Spider):
     json_response = json.loads(response.body)
     loader = AdvocateLoader(json_response)
     loader.add_json('gender', 'name', self.gender_processor)
-    advocate = loader.load_advocate_data(response.meta.get('case_id', None))
+    advocate = loader.load_advocate_data(response.meta.get('case_id', None), self.gender_processor)
     advocate.send(self.session)
     return 
 
@@ -161,7 +161,7 @@ class OyezSpider(scrapy.Spider):
         if turn.__class__ == AdvocateTurnItem:
           advocate_id = turn['advocate_oyez_id']
           if advocate_id not in advocate_ids_seen: # if we haven't seen the advocate before
-            advocate = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id) # load the advocate data
+            advocate = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id, self.gender_processor) # load the advocate data
             advocate.send(self.session)
             advocate_ids_seen.add(advocate['oyez_id']) # update the seen set
           else:

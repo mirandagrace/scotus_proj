@@ -38,7 +38,7 @@ class Advocacy(Base):
   case_id = Column(Integer, ForeignKey('cases.id'), nullable=False)
   case = relationship('Case', back_populates='advocacies')
 
-  advocate_id = Column(Integer, ForeignKey('advocates.id'), nullable=False)
+  advocate_id = Column(Integer, ForeignKey('advocates.id'))
   advocate = relationship('Advocate', back_populates='advocacies')
   
   def __repr__(self): #pragma: no cover

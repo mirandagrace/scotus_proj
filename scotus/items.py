@@ -166,12 +166,18 @@ class CaseItem(AlchemyItem):
     if len(record.questions) == 0:
       questions = self.get('questions', None)
       if questions != None:
-        questions = map(lambda x: x.strip('0123456789()').strip(), questions.split('\n'))
+        questions = map(lambda x: x.strip('0123456789().').strip(), questions.split('\n'))
       conclusions = self.get('conclusion', None)
       if conclusions != None:
-        conclusions = conclusions.split('.', 1)[0].split(',')
+        conclusions = conclusions.split('.', 1)[0]
+        conclusions = conclusions.split(' and ', 1)
+        if len(conclusions) > 1:
+          last = [conclusions[1]]
+        else:
+          last = []
+        conclusions = conclusions[0].split(',')+last
       for q, c in zip(questions, conclusions):
-        record.questions.append(Question(text=q, disposition=c.lower()))
+        record.questions.append(Question(text=q, disposition=c.lower().strip()))
   
 class CaseLoader(JsonItemLoader):
   default_item_class = CaseItem
@@ -281,38 +287,42 @@ class AdvocateItem(AlchemyItem):
   
   def clean(self):
     description = self.get('description', '')
-    if 'petitioner' in description.lower() or 'appellant' in description.lower():
+    if 'petitioner' in description.lower() or 'appellant' in description.lower() or self.get('role', None) == 'party1':
       self['side'] = u'petitioner'
-    elif 'respondent' in description.lower() or 'appellee' in description.lower():
+    elif 'respondent' in description.lower() or 'appellee' in description.lower()or self.get('role', None) == 'party2':
       self['side'] = u'respondent'
     else:
       pass
     
   def on_send_record(self, session, record):
     case = Case.search_by_oyez_id(session, self['case_oyez_id'])
-    advocacy = Advocacy.search_for_scraped(session, case.id, self['oyez_id'])
+    advocacy = Advocacy.search_for_scraped(session, case.id, advocate_oyez_id = self.get('oyez_id', None))
     if advocacy == None:
       advocacy = Advocacy(side=self.get('side', None), role=self.get('role',None), case_id=case.id)
       advocacy.advocate = record
       session.add(advocacy)
     else:
-      advocacy.side = self.get('side', None)
-      advocacy.role = self.get('role', None)
-
+      if not advocacy.side:
+        advocacy.side = self.get('side', None)
+      if not advocacy.role:
+        advocacy.role = self.get('role', None)
+      
 class AdvocateLoader(JsonItemLoader):
   default_item_class = AdvocateItem
   default_ouput_processor = TakeFirst()
 
-  def load_advocate_data(self, case_id):
+  def load_advocate_data(self, case_id, gp):
     self.add_value('case_oyez_id', case_id)
     self.add_json('description', 'advocate_description')
     self.add_json('role', 'advocate_role.value')
+    self.add_json('gender', 'advocate.name', gp)
     self.add_json('name', 'advocate.name')
     self.add_json('oyez_id', 'advocate.ID')
     return self.load_item()
 
-  def load_speaking_data(self, case_id):
+  def load_speaking_data(self, case_id, gp):
     self.add_value('case_oyez_id', case_id)
+    self.add_json('gender', 'speaker.name', gp)
     self.add_json('name', 'speaker.name')
     self.add_json('oyez_id', 'speaker.ID')
     return self.load_item()
