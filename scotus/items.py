@@ -94,7 +94,8 @@ class AlchemyItem(scrapy.Item):
     
   def _update_record(self, session, record):
     for k, v in self._update_args().items():
-      setattr(record, k, v)
+      if getattr(record, k) == None:
+        setattr(record, k, v)
     self.on_update_record(session, record)
    
 class CaseItem(AlchemyItem):
@@ -129,11 +130,11 @@ class CaseItem(AlchemyItem):
   search_fields = frozenset(['docket', 'volume', 'page'])
   
   def clean(item):
-    wp = item.get('winning_party', '')
-    if wp in item.get('petitioner', ''):
+    wp = item.get('winning_party', '').lower()
+    if wp in item.get('petitioner', '').lower():
       item['winning_side'] = u'petitioner'
       item['losing_side'] = u'respondent'
-    elif wp in item.get('respondent', ''):
+    elif wp in item.get('respondent', '').lower():
       item['winning_side'] = u'respondent'
       item['losing_side'] = u'petitioner'
     else:

@@ -12,8 +12,8 @@ BOT_NAME = 'oyez'
 
 SPIDER_MODULES = ['scotus.spiders']
 NEWSPIDER_MODULE = 'scotus.spiders'
-CONCURRENT_REQUESTS = 4
-DOWNLOAD_DELAY = 1
+CONCURRENT_REQUESTS = 5
+DOWNLOAD_DELAY = .75 
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

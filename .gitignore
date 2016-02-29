@@ -68,3 +68,4 @@ data/
 # alembic files
 alembic/
 alembic.ini
+.Rproj.user
