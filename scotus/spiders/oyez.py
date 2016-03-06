@@ -6,12 +6,16 @@ from datetime import date
 from scrapy.selector import Selector
 from w3lib.url import url_query_parameter
 from ..settings import TEST_DB, DEFAULT_DB
-from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader, AdvocateTurnItem
+from ..items import CaseItem, CaseLoader, VoteItem, VoteLoader, AdvocateLoader, AdvocateTurnItem, JusticeTurnItem
 from ..items import ArgumentLoader, SectionLoader, turn_loader_factory
 from ..db.models import *
 from ..db import DB
 import sexmachine.detector as gender
 
+
+def set_section(turn, s_id):
+  turn.session_id = s_id
+  return turn
   
 class OyezSpider(scrapy.Spider):
   name = "oyez"
@@ -134,7 +138,7 @@ class OyezSpider(scrapy.Spider):
     '''
     # 1 argument 4 sections  # 18 20 105 4 # 3 advocates
     results = []
-    advocate_ids_seen = set([])
+    advocate_ids_seen = dict({})
     json_response = json.loads(response.body)
     case_oyez_id = response.meta.get('case_id', None)
 
@@ -145,35 +149,51 @@ class OyezSpider(scrapy.Spider):
 
     # parse the sections
     sections = jmespath.search('transcript.sections', json_response)
+    all_turns = []
     if sections == None:
       sections = []
     for section_number, section_json in enumerate(sections):
+      turns = []
       section_loader = SectionLoader(section_json)
       section_item = section_loader.load_section_data(argument_oyez_id, section_number)
       section_item.send(self.session)
-
       # parse turns
-      turns = jmespath.search('turns', section_json)
+      turns_data = jmespath.search('turns', section_json)
       section = None # keep track of if we've found the advocate owner of the section yet
-      for turn_number, turn_json in enumerate(turns):
+      for turn_number, turn_json in enumerate(turns_data):
         # load turn data
-        turn = turn_loader_factory(turn_json).load_turn_data(argument_oyez_id, section_number, turn_number)
-        if turn.__class__ == AdvocateTurnItem:
-          advocate_id = turn['advocate_oyez_id']
-          if advocate_id not in advocate_ids_seen: # if we haven't seen the advocate before
-            advocate = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id, self.gender_processor) # load the advocate data
-            advocate.send(self.session)
-            advocate_ids_seen.add(advocate['oyez_id']) # update the seen set
+        turn_item = turn_loader_factory(turn_json).load_turn_data(argument_oyez_id, section_number, turn_number)
+        turn = turn_item.Model(**turn_item._add_args())
+        if turn_item.__class__ == AdvocateTurnItem:
+          advocate_oyez_id = turn_item['advocate_oyez_id']
+          if advocate_oyez_id not in advocate_ids_seen: # if we haven't seen the advocate before
+            advocate_item = AdvocateLoader(turn_json).load_speaking_data(case_oyez_id, self.gender_processor) # load the advocate data
+            advocate = advocate_item.send(self.session)
+            advocate_ids_seen[advocate_item['oyez_id']] = advocate.id # update the seen set
+            turn.advocate_id = advocate.id
+            advocate_id = advocate.id
           else:
-            pass
+            advocate_id = advocate_ids_seen[advocate_item['oyez_id']]
+            turn.advocate_id = advocate_id
           if section == None: # if we haven't assigned a primary advocate to the section yet
-            section = section_loader.load_advocate_owner(advocate_id)
-            section.send(self.session)
+            section = section_loader.load_advocate_owner(advocate_id).send(self.session)
           else:
             pass
+        elif turn_item.__class__ == JusticeTurnItem:
+          justice = Justice.search_by_oyez_id(self.session, turn_item['justice_oyez_id'])
+          turn.justice_id = justice.id
         else:
           pass
-        turn.send(self.session)
+        turns.append(turn)
+      for turn in turns:
+        turn.section_id = section.id
+      all_turns += turns
+    try:
+      self.session.bulk_save_objects(all_turns)
+      self.session.commit()
+    except:
+      self.session.rollback()
+      raise
     return results
 
 

@@ -88,6 +88,7 @@ class AlchemyItem(scrapy.Item):
     except:
       session.rollback()
       raise
+    return item_obj
       
   def _update_args(self):
     return {k:v for k,v in dict(self).items() if k in self.update_fields and v}
