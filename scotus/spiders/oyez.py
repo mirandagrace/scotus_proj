@@ -143,27 +143,26 @@ class OyezSpider(scrapy.Spider):
     case_oyez_id = response.meta.get('case_id', None)
 
     # parse the arguments
-    argument = ArgumentLoader(json_response).load_argument_data(case_oyez_id)
-    argument_oyez_id = argument['oyez_id']
-    argument.send(self.session)
+    argument_item = ArgumentLoader(json_response).load_argument_data(case_oyez_id)
+    argument_oyez_id = argument_item['oyez_id']
+    argument = argument_item.send(self.session)
 
     # parse the sections
     sections = jmespath.search('transcript.sections', json_response)
-    all_turns = []
+    turns = []
     if sections == None:
       sections = []
     for section_number, section_json in enumerate(sections):
-      turns = []
       section_loader = SectionLoader(section_json)
       section_item = section_loader.load_section_data(argument_oyez_id, section_number)
-      section_item.send(self.session)
+      section = section_item.send(self.session)
       # parse turns
       turns_data = jmespath.search('turns', section_json)
-      section = None # keep track of if we've found the advocate owner of the section yet
       for turn_number, turn_json in enumerate(turns_data):
         # load turn data
         turn_item = turn_loader_factory(turn_json).load_turn_data(argument_oyez_id, section_number, turn_number)
         turn = turn_item.Model(**turn_item._add_args())
+        turn.section_id = section.id
         if turn_item.__class__ == AdvocateTurnItem:
           advocate_oyez_id = turn_item['advocate_oyez_id']
           if advocate_oyez_id not in advocate_ids_seen: # if we haven't seen the advocate before
@@ -175,8 +174,14 @@ class OyezSpider(scrapy.Spider):
           else:
             advocate_id = advocate_ids_seen[advocate_item['oyez_id']]
             turn.advocate_id = advocate_id
-          if section == None: # if we haven't assigned a primary advocate to the section yet
-            section = section_loader.load_advocate_owner(advocate_id).send(self.session)
+          if section.advocacy == None: # if we haven't assigned a primary advocate to the section yet
+            try:
+              advocacy = Advocacy.search_for_scraped(self.session, case_id=argument.case.id, advocate_oyez_id=advocate_oyez_id)
+              section.advocacy = advocacy
+              self.session.commit()
+            except:
+              self.session.rollback()
+              raise
           else:
             pass
         elif turn_item.__class__ == JusticeTurnItem:
@@ -185,11 +190,8 @@ class OyezSpider(scrapy.Spider):
         else:
           pass
         turns.append(turn)
-      for turn in turns:
-        turn.section_id = section.id
-      all_turns += turns
     try:
-      self.session.bulk_save_objects(all_turns)
+      self.session.bulk_save_objects(turns)
       self.session.commit()
     except:
       self.session.rollback()
