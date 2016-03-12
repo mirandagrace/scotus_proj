@@ -118,9 +118,12 @@ class Case(Base, OyezIdMixin):
   @classmethod
   def search_for_scraped(cls, session, docket=None, volume=None, page=None):
     baked_query = bakery(lambda session: session.query(cls))
-    baked_query += lambda q: q.filter(or_(cls.docket == bindparam('docket'), 
-                                          and_(cls.volume == bindparam('volume'),
-                                               cls.page == bindparam('page'))))
+    if volume != None and page != None:
+      baked_query += lambda q: q.filter(cls.volume == bindparam('volume'), cls.page == bindparam('page'))
+    elif docket != None:   
+      baked_query += lambda q: q.filter(cls.docket == bindparam('docket'))
+    else:
+      return None
     result = baked_query(session).params(docket=docket, volume=volume, page=page).one_or_none()
     return result
 

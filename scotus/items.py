@@ -32,8 +32,14 @@ class JsonItemLoader(ItemLoader):
   def replace_json(self, field_name, jmes_path, *processors, **kwargs):
     self.add_value(field_name, jmespath.search(jmes_path, self.json), *processors, **kwargs)
 
+def safe_int(x):
+  try:
+    return int(x)
+  except:
+    return None
+
 html_input_processor = MapCompose(lambda x: x.encode('utf-8'), remove_tags)
-integer_input_processor = MapCompose(lambda x: int(x))
+integer_input_processor = MapCompose(lambda x: safe_int(x))
 timestamp_input_processor = MapCompose(lambda x: date.fromtimestamp(x))
 text_output_processor = Compose(MapCompose(lambda x: x.strip()), TakeFirst())
 
@@ -178,8 +184,13 @@ class CaseItem(AlchemyItem):
         else:
           last = []
         conclusions = conclusions[0].split(',')+last
-      for q, c in zip(questions, conclusions):
-        record.questions.append(Question(text=q, disposition=c.lower().strip()))
+      else:
+        conclusions = []
+      try:
+        for q, c in zip(questions, conclusions):
+          record.questions.append(Question(text=q, disposition=c.lower().strip()))
+      except:
+        pass
   
 class CaseLoader(JsonItemLoader):
   default_item_class = CaseItem
@@ -231,21 +242,21 @@ class VoteItem(AlchemyItem):
     pass
     
   def on_add_record(self, session, record):
-    record.case_id = Case.search_by_oyez_id(session, self['case_oyez_id']).id
-    record.justice_id = Justice.search_by_oyez_id(session, self['justice_oyez_id']).id
+    record.case_id = Case.search_by_oyez_id(session, self.get('case_oyez_id')).id
+    record.justice_id = Justice.search_by_oyez_id(session, self.get('justice_oyez_id')).id
     
   def on_send_record(self, session, record):
     case = record.case
-    if self['opinion_written'] != 'none':
+    opinion_written =  self.get('opinion_written', None)
+    if opinion_written != None and opinion_written != 'none':
       opinion = Opinion.search_by_author_vote(session, record.case_id, record.justice_id)
-      
       if opinion == None:
-        opinion = Opinion(case_id = case.id, kind=self['opinion_written'])
+        opinion = Opinion(case_id = case.id, kind=opinion_written)
         ow = OpinionWritten(opinion=opinion, justice=record.justice)
         session.add(opinion)
         session.add(ow)
       else:
-        opinion.kind = self['opinion_written']
+        opinion.kind = opinion_written
 
     justices_joined = self.get('opinions_joined', [])
     for justice_joined_oyez_id in justices_joined:
@@ -297,7 +308,7 @@ class AdvocateItem(AlchemyItem):
       pass
     
   def on_send_record(self, session, record):
-    case = Case.search_by_oyez_id(session, self['case_oyez_id'])
+    case = Case.search_by_oyez_id(session, self.get('case_oyez_id'))
     advocacy = Advocacy.search_for_scraped(session, case.id, advocate_oyez_id = self.get('oyez_id', None))
     if advocacy == None:
       advocacy = Advocacy(side=self.get('side', None), role=self.get('role',None), case_id=case.id)
@@ -342,7 +353,7 @@ class ArgumentItem(AlchemyItem):
   search_fields = frozenset(['oyez_id'])
     
   def on_add_record(self, session, record):
-    case = Case.search_by_oyez_id(session, self['case_oyez_id'])
+    case = Case.search_by_oyez_id(session, self.get('case_oyez_id'))
     record.case = case
 
 class ArgumentLoader(JsonItemLoader):
@@ -367,7 +378,7 @@ class SectionItem(AlchemyItem):
   search_fields = frozenset(['argument_oyez_id', 'number'])
 
   def on_add_record(self, session, record):
-    argument = Argument.search_by_oyez_id(session, self['argument_oyez_id'])
+    argument = Argument.search_by_oyez_id(session, self.get('argument_oyez_id'))
     record.argument = argument
 
   def on_send_record(self, session, record):
@@ -405,7 +416,7 @@ class TurnItem(AlchemyItem):
   search_fields = frozenset(['number', 'section_number', 'argument_oyez_id'])
 
   def set_section(self, session, record):
-    section = Section.search_for_scraped(session, argument_oyez_id=self['argument_oyez_id'], number=self['section_number'])
+    section = Section.search_for_scraped(session, argument_oyez_id=self.get('argument_oyez_id'), number=self.get('section_number'))
     record.section = section
     
   def on_add_record(self, session, record):
@@ -438,7 +449,7 @@ class JusticeTurnItem(TurnItem):
 
   def on_add_record(self, session, record):
     self.set_section(session, record)
-    justice = Justice.search_by_oyez_id(session, self['justice_oyez_id'])
+    justice = Justice.search_by_oyez_id(session, self.get('justice_oyez_id'))
     record.justice = justice
 
 class JusticeTurnLoader(TurnLoader):
@@ -457,7 +468,7 @@ class AdvocateTurnItem(TurnItem):
 
   def on_add_record(self, session, record):
     self.set_section(session, record)
-    advocate = Advocate.search_by_oyez_id(session, self['advocate_oyez_id'])
+    advocate = Advocate.search_by_oyez_id(session, self.get('advocate_oyez_id'))
     record.advocate = advocate
 
 class AdvocateTurnLoader(TurnLoader):
