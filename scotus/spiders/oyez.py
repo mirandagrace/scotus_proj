@@ -144,6 +144,8 @@ class OyezSpider(scrapy.Spider):
 
     # parse the arguments
     argument_item = ArgumentLoader(json_response).load_argument_data(case_oyez_id)
+    if argument_item._get(self.session) != None:
+      return results
     argument_oyez_id = argument_item['oyez_id']
     argument = argument_item.send(self.session)
 
