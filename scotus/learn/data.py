@@ -83,6 +83,7 @@ def get_case_data(db):
                                       Case.winning_side,
                                       Case.facts,
                                       Case.dec_type,
+                                      Case.dec_date,
                                       Case.id,
                                       Case.scdb_id]), con=db.engine, index_col='id')
                                       #parse_dates=['dec_date'])
@@ -127,12 +128,15 @@ def j_gender(id, axis=None):
   return id in [1, 2, 6, 11]
 
 def term(d):
-    y = d.year
-    m = d.month
-    if m > 8:
-        return y
-    else:
-        return y-1
+    try:
+      y = d.year
+      m = d.month
+      if m > 8:
+          return y
+      else:
+          return y-1
+    except:
+      return np.nan
    
 def reshape(X, groups=[], aggregators={}, stack=None, drop=None, rename=None):
   dataframe = X.groupby(groups).agg(aggregators)
@@ -149,6 +153,7 @@ def reshape(X, groups=[], aggregators={}, stack=None, drop=None, rename=None):
           print dataframe.columns.values
           raise
   return dataframe
+
 def lines_data():
   db = DB(DEFAULT_DB)
   #data = fetch_data(db) 
@@ -169,7 +174,9 @@ def lines_data():
   data = data.join(case_data, on=['case_id'], how='left')
   #data.loc[data['justice_id'].apply(j_gender, axis=1) , 'gender'] = '0'
   data.loc[data['kind']=='advocate', 'speaker'] = 'advocate'
-  data.rename(columns={'dec_type':'decision_type',
+  data.rename(columns={'dec_date': 'date_decided',
+                       'date':'date_argued',
+                       'dec_type':'decision_type',
                        'kind':'turns'}, inplace=True)
   data.loc[(data['vote'] != 'majority')& (data['vote'] != 'minority') & (data['decision_type'] == 'per curiam'), ('vote')] = u'majority'
   data['vote_side'] = data.apply(get_vote_side_numeric, axis=1)
@@ -183,6 +190,7 @@ def lines_data():
                                'name':'first',
                                'winning_side': 'first',
                                'decision_type': 'first',
+                               'date_decided': 'first',
                                'date_argued': 'first',
                                'speaker': lambda x: ' '.join(x)
                                })
@@ -206,5 +214,8 @@ def lines_data():
   data['majority'] = majority
   data['minority'] = minority
   data.dropna(subset=['date_argued'], inplace=True)
-  #data['term'] = data['date_argued'].apply(term)
+  data['term'] = data['date_decided'].apply(term)
+  data.fillna(value={x:'' for x in data.columns.values if 'text' in x}, inplace=True)
+  data.fillna(value={'facts':'', 'speaker':''}, inplace=True)
+  data.fillna(0, inplace=True)
   return data
