@@ -53,4 +53,7 @@ class ReductionPipeline(Pipeline):
         plt.plot(range(0,len(self.get_params()['reduce'].explained_variance_)), 
                  self.get_params()['reduce'].explained_variance_)
         
+class NamedTfidfVectorizer(Pipeline):
+    def get_feature_names(self):
+        return self.get_params()['tfidf'].get_feature_names()       
         

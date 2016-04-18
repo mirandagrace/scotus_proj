@@ -170,20 +170,25 @@ def lines_data():
   finally:
     session.close()
   name_data = pandas.DataFrame.from_records(justice_name, index='id')
-  data = pandas.merge(vote_data, transcript_data, on=['case_id', 'justice_id'], how='outer').join(name_data, on='justice_id', how='left')
+  #transcript_data = transcript_data.join(name_data, on='justice_id', how='left')
+  #transcript_data.loc[transcript_data['kind']=='advocate', 'speaker'] = 'advocate'
+  #transcript_data.dropna(subset=['speaker'], inplace=True)
+  speaker = transcript_data[['kind', 'justice_id', 'case_id']].join(name_data, on='justice_id')
+  speaker.loc[transcript_data['kind']=='advocate', 'speaker'] = 'advocate'
+  speaker.dropna(subset=['speaker'], inplace=True)
+  speaker = speaker.groupby('case_id').agg(lambda x: ' '.join(x))
+  speaker.rename(columns={'speaker':'speaking_order'}, inplace=True)
+  data = pandas.merge(vote_data, transcript_data, on=['case_id', 'justice_id'], how='outer')
+  data = data.join(name_data, on=['justice_id'], how='left')
   data = data.join(case_data, on=['case_id'], how='left')
-  #data.loc[data['justice_id'].apply(j_gender, axis=1) , 'gender'] = '0'
-  data.loc[data['kind']=='advocate', 'speaker'] = 'advocate'
   data.rename(columns={'dec_date': 'date_decided',
                        'date':'date_argued',
                        'dec_type':'decision_type',
                        'kind':'turns'}, inplace=True)
   data.loc[(data['vote'] != 'majority')& (data['vote'] != 'minority') & (data['decision_type'] == 'per curiam'), ('vote')] = u'majority'
   data['vote_side'] = data.apply(get_vote_side_numeric, axis=1)
+  data.loc[data['turns']=='advocate', 'speaker'] = 'advocate'
   data.dropna(subset=['facts', 'speaker'], inplace=True)
-  majority = data.groupby(['case_id', 'speaker'], as_index=False)['vote'].agg('first').groupby('case_id').agg(lambda x: len(x[x=='majority']))['vote']
-  minority = data.groupby(['case_id', 'speaker'], as_index=False)['vote'].agg('first').groupby('case_id').agg(lambda x: len(x[x=='minority']))['vote']
- # data = data[(data['speaker'] == 'advocate') | ((data['justice_id'] < 11) & (data['justice_id'] != 8))] 
   cases = reshape(data,
                   groups=['case_id'],
                   aggregators={'facts': 'first',
@@ -192,7 +197,6 @@ def lines_data():
                                'decision_type': 'first',
                                'date_decided': 'first',
                                'date_argued': 'first',
-                               'speaker': lambda x: ' '.join(x)
                                })
   votes = reshape(data,
                   groups=['case_id', 'speaker'],
@@ -210,7 +214,9 @@ def lines_data():
                                   'question': 'sum',
                                   'text': lambda x: ' '.join(x)},
                     stack=['speaker', 'side'])
-  data = cases.join([votes, speakers])
+  majority = data.groupby(['case_id', 'speaker'], as_index=False)['vote'].agg('first').groupby('case_id').agg(lambda x: len(x[x=='majority']))['vote']
+  minority = data.groupby(['case_id', 'speaker'], as_index=False)['vote'].agg('first').groupby('case_id').agg(lambda x: len(x[x=='minority']))['vote']
+  data = cases.join([votes, speakers, speaker])
   data['majority'] = majority
   data['minority'] = minority
   data.dropna(subset=['date_argued'], inplace=True)
@@ -219,3 +225,24 @@ def lines_data():
   data.fillna(value={'facts':'', 'speaker':''}, inplace=True)
   data.fillna(0, inplace=True)
   return data
+
+def prep_justice(name, data, cutoff_year = 2013, cutin_year=2009):
+    test = data[data['term'] >cutoff_year]
+    train = data[(data['term']<=cutoff_year)&(data['term']>=cutin_year)]
+    vote_col = 'vote_side_'+ name
+    X_train = train[(train[vote_col] == -1)|(train[vote_col]==1)]
+    y_train = X_train[vote_col].astype(int)
+    X_test = test[(test[vote_col] == -1)|(test[vote_col]==1)]
+    y_test = X_test[vote_col].astype(int)
+    return {'train': (X_train, y_train), 'test':(X_test, y_test)}
+
+def get_data(name, data, cutoff_year = 2013, cutin_year=2009):
+    d = data[(data['term']<=cutoff_year)&(data['term']>=cutin_year)]
+    vote_col = 'vote_side_'+ name
+    X = d[(d[vote_col] == -1)|(d[vote_col]==1)]
+    y = X[vote_col].astype(int)
+    return X, y
+
+def get_undecided(data):
+    return data[data['date_decided'] == 0]
+
